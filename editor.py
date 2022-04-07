@@ -159,7 +159,6 @@ class RobertaEditor(nn.Module):
             #     key_ind.append(i)
             # elif pos[i] in ['VBZ', 'VBP', 'VBN', 'VBG', 'VBD', 'VB'] and keyword[i] == 1:
             #     key_ind.append(i)
-
             elif pos[i] in ['JJS', 'JJR', 'JJ', 'RBR', 'RBS', 'RB', 'VBZ', 'VBP', 'VBN', 'VBG', 'VBD', 'VB'] and keyword[i] == 0:
                 key_ind.append(i)
 
