@@ -17,10 +17,9 @@ class RobertaEditor(nn.Module):
         self.tokenizer = RobertaTokenizer.from_pretrained(self.model_dir)
         self.model.resize_token_embeddings(len(self.tokenizer))
         self.ops_map = [self.insert, self.replace, self.delete]
-        #self.unmasker = pipeline("fill-mask", model=self.model_dir,framework="pt",device=torch.cuda.current_device())
+        self.unmasker = pipeline("fill-mask", model=self.model_dir, framework="pt")
         self.max_len = opt.max_len
         self.Rake = RAKE.Rake(RAKE.SmartStopList())
-
         print("Editor built")
 
     def edit(self, inputs, ops, positions, max_len=None):
@@ -37,16 +36,16 @@ class RobertaEditor(nn.Module):
     def generate(self, input_texts, max_len):
 
         sent_list = []
-        #mask_words = [output['token_str'].strip() for output in self.unmasker(input_texts, top_k=self.topk)]
+        mask_words = [output['token_str'].strip() for output in self.unmasker(input_texts, top_k=self.topk)]
 
         for input_text in input_texts:
-            #input_seq = torch.tensor(self.tokenizer.encode(input_text, return_tensors='pt')).cuda()
-            rbt_tokens, _ = self.plm_token(input_texts)
-            input_seq=torch.tensor([self.tokenizer.convert_tokens_to_ids(rbt_token) for rbt_token in rbt_tokens]).cuda()
-            mask_token_index = torch.where(input_seq == self.tokenizer.mask_token_id)[1]
-            token_logits = self.model(input_seq).logits
-            masked_token_logits = token_logits[0, mask_token_index, :]
-            mask_words = list(set(self.tokenizer.decode([token.item()]).lower() for token in torch.topk(masked_token_logits, 5, dim=1).indices[0]))
+            # rbt_tokens, _ = self.plm_token(input_texts)
+            # input_seq=torch.tensor([self.tokenizer.convert_tokens_to_ids(rbt_token) for rbt_token in rbt_tokens]).to(device)
+            # #input_seq=self.tokenizer.encode(input_text,return_tensors='pt').to(device)
+            # mask_token_index = torch.where(input_seq == self.tokenizer.mask_token_id)[1]
+            # token_logits = self.model(input_seq).logits
+            # masked_token_logits = token_logits[0, mask_token_index, :]
+            # mask_words = list(set(self.tokenizer.decode([token.item()]).lower() for token in torch.topk(masked_token_logits, self.topk, dim=1).indices[0]))
 
             for mask_word in mask_words:
                 cand_sent = input_text.replace("<mask>", mask_word.strip()).lower()
@@ -131,13 +130,13 @@ class RobertaEditor(nn.Module):
         return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
 
     def get_contextual_word_embeddings(self, input_texts):
-        inputs = {k: v.to(device) for k, v in self.tokenizer(input_texts, padding=True, return_tensors="pt").items()}
-        # inputs={}
-        # rbt_tokens, _=self.plm_token(input_texts)
-        # input_ids=torch.tensor([self.tokenizer.convert_tokens_to_ids(rbt_token) for rbt_token in rbt_tokens]).to(device)
-        # attention_mask=torch.tensor([[1]*len(inp) for inp in rbt_tokens]).to(device)
-        # inputs['input_ids']=input_ids
-        # inputs['attention_mask']=attention_mask
+        #inputs = {k: v.to(device) for k, v in self.tokenizer(input_texts, padding=True, return_tensors="pt").items()}
+        inputs={}
+        rbt_tokens, _=self.plm_token(input_texts)
+        input_ids=torch.tensor([self.tokenizer.convert_tokens_to_ids(rbt_token) for rbt_token in rbt_tokens]).to(device)
+        attention_mask=torch.tensor([[1]*len(inp) for inp in rbt_tokens]).to(device)
+        inputs['input_ids']=input_ids
+        inputs['attention_mask']=attention_mask
 
         outputs = self.model(**inputs, output_hidden_states=True)
         sentence_embeddings = self.mean_pooling(outputs, inputs['attention_mask'])

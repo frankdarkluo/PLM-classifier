@@ -1,6 +1,4 @@
-import json
 import math
-import os.path
 import os
 import logging
 from sampling import SimulatedAnnealing

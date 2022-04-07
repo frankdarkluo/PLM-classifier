@@ -3,13 +3,11 @@ import numpy as np
 import math
 import torch.nn as nn
 from transformers import pipeline,RobertaTokenizer, RobertaForMaskedLM,GPTNeoForCausalLM,GPT2Tokenizer,\
-    GPT2LMHeadModel,GPTJForCausalLM
-from utils import predict_next_word,pipe
-from utils import pytorch_cos_sim
+    GPT2LMHeadModel,GPTJForCausalLM,RobertaForSequenceClassification
+from utils import predict_next_word,pipe,pytorch_cos_sim,softmax
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-pipeline_classifier = pipeline("sentiment-analysis", model="siebert/sentiment-roberta-large-english",
-                               framework="pt",device=torch.cuda.current_device())
-#pipeline_classifier = pipeline("sentiment-analysis")
+# pipeline_classifier = pipeline("sentiment-analysis", model="siebert/sentiment-roberta-large-english",
+#                                framework="pt",device=torch.cuda.current_device())
 
 class SimulatedAnnealing(nn.Module):
     def __init__(self, option,editor,t_init, C, fluency_weight, keyword_weight, sent_weight, style_weight, max_steps):
@@ -35,6 +33,20 @@ class SimulatedAnnealing(nn.Module):
         self.max_len = self.option.max_len
         self.model=GPT2LMHeadModel.from_pretrained('gpt2').to(device)
         self.ppl_max_len=self.model.config.n_positions
+        self.sty_tokenizer = RobertaTokenizer.from_pretrained("siebert/sentiment-roberta-large-english")
+        self.sty_model = RobertaForSequenceClassification.from_pretrained("siebert/sentiment-roberta-large-english").to(device)
+
+    def pipeline_classifier(self,text):
+        inputs=self.sty_tokenizer(text,return_tensors="pt").to(device)
+        with torch.no_grad():
+            logits = self.sty_model(**inputs).logits
+        logits = softmax(logits.to(device))
+        predicted_class_id = logits.argmax().item()
+        outputs = {}
+        outputs['label'] = self.sty_model.config.id2label[predicted_class_id]
+        outputs['score'] = logits.squeeze()[predicted_class_id]
+
+        return [outputs]
 
     def style_scorer(self,ref_news):
 
@@ -47,10 +59,10 @@ class SimulatedAnnealing(nn.Module):
             if self.option.style_mode == 'plm':
                 # TODO: Define the prompt and the PLM classification score!
                 input_candidate_text = prefix + text + postfix
-                classifi_tokens, style_prob = predict_next_word(self.plm, self.tokenizer, input_candidate_text,
+                style_prob = predict_next_word(self.plm, self.tokenizer, input_candidate_text,
                                                                 k=len(self.tokenizer), direction=self.option.direction)
                 if self.option.early_stop==True:
-                    res_cand = pipeline_classifier(text)
+                    res_cand = self.pipeline_classifier(text)
                     style_label=res_cand[0]['label'].lower()
                 else:
                     style_label=None
@@ -58,18 +70,21 @@ class SimulatedAnnealing(nn.Module):
 
             elif self.option.style_mode == 'pipeline':
 
-                res_cand = pipeline_classifier(text)
+                res_cand = self.pipeline_classifier(text)
                 style_prob,style_label=pipe(res_cand,self.option.direction)
                 prob_new_probs.append(math.pow(style_prob, self.style_weight))
 
-        prob_new_prob=torch.tensor(prob_new_probs).cuda()
+        prob_new_prob=torch.tensor(prob_new_probs).to(device)
 
         return prob_new_prob,style_label
 
     def fluency_scorer(self,ref_news): #Refer to https://huggingface.co/docs/transformers/perplexity
-        _, gpt_tokens=self.editor.plm_token(ref_news)
-        input_ids = torch.tensor([self.tokenizer.convert_tokens_to_ids(gpt_token) for gpt_token in gpt_tokens]).to(
-            device)
+
+        # _, gpt_tokens=self.editor.plm_token(ref_news)
+        # input_ids = torch.tensor([self.tokenizer.convert_tokens_to_ids(gpt_token) for gpt_token in gpt_tokens]).to(
+        #     device)
+        encodings = self.tokenizer(ref_news, return_tensors="pt").to(device)
+        input_ids=encodings.input_ids
 
         nlls = []
         for i in range(0, input_ids.size(1), self.stride):
@@ -150,7 +165,7 @@ class SimulatedAnnealing(nn.Module):
         ref_old_score,old_style_score, _ = self.scorer(input_olds,ref_oris,state_vec)
         ref_old_score=ref_old_score.squeeze()
 
-        ref_new_scores=torch.tensor([self.scorer([ref_hat], ref_oris,state_vec)[0].squeeze() for ref_hat in input_news]).cuda()
+        ref_new_scores=torch.tensor([self.scorer([ref_hat], ref_oris,state_vec)[0].squeeze() for ref_hat in input_news]).to(device)
         new_style_score=[self.scorer([ref_hat],ref_oris,state_vec)[1].squeeze() for ref_hat in input_news]
         new_style_label=[self.scorer([ref_hat],ref_oris,state_vec)[2] for ref_hat in input_news]
         ref_new_score_index=torch.argmax(ref_new_scores)

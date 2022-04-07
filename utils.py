@@ -1,6 +1,8 @@
 import random
 import numpy as np
 import torch
+from args import get_args
+args=get_args()
 from nltk.corpus import stopwords
 stopwords.words('english')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -18,9 +20,9 @@ def set_seed(seed):
         torch.cuda.manual_seed_all(seed)
 
 def softmax(x):
-    x = x - np.max(x)
-    exp_x = np.exp(x)
-    softmax_x = exp_x / np.sum(exp_x)
+    x = x - torch.max(x)
+    exp_x = torch.exp(x)
+    softmax_x = exp_x / torch.sum(exp_x)
     return softmax_x
 
 def predict_next_word(model,tokenizer,input_text,k,direction):
@@ -41,35 +43,25 @@ def predict_next_word(model,tokenizer,input_text,k,direction):
     # if [0, -1, :] --> dim_size (1, 50257); if [:, -1, :] --> (50257,)
     probs = predictions[0, -1, :]
 
-    top_next = [tokenizer.decode(i.item()).strip() for i in probs.topk(k)[1]]
+    if args.task=='sentiment':
+        pos_logits = probs[tokenizer.encode('positive')]
+        neg_logits = probs[tokenizer.encode('negative')]
+    else:
+        pos_logits = probs[tokenizer.encode('formal')]
+        neg_logits = probs[tokenizer.encode('informal')]
 
-    top_logits = [probs[i].item() for i in probs.topk(k)[1]]  # logits for each token
+    emo_logits = torch.concat([pos_logits, neg_logits])
+    softmax_emo_logits = softmax(emo_logits)
 
-    softmax_logits = softmax(top_logits)
-    assert len(top_next) == len(softmax_logits)
+    pos_prob = softmax_emo_logits[0]
+    neg_prob = softmax_emo_logits[1]
 
-    token2prob_dict = {top_next[i]: softmax_logits[i] for i in range(len(top_next))}
-
-    pos_prob = 0
-    neg_prob = 0
-    for word in negative_word_lst:
-        if word in top_next:
-            neg_prob += token2prob_dict[word]
-    for word in positive_word_lst:
-        if word in top_next:
-            pos_prob += token2prob_dict[word]
-    if pos_prob==0:
-        pos_prob=1e-4
-    if neg_prob==0:
-        neg_prob==1e-4
-    # print(1 - neg_prob)
-    # print(pos_prob)
     if direction=='0-1':
         output_prob = (1 - neg_prob) * pos_prob  # make the prob more robust
     else: #1-0
         output_prob= (1-pos_prob)*neg_prob
 
-    return top_next, output_prob
+    return output_prob
 
 def pipe(res_cand,direction):
     label = res_cand[0]['label'].lower()
