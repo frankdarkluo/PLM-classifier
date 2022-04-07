@@ -15,7 +15,7 @@ def get_args():
     parser.add_argument('--seed', type=int, default=42, help='Seed for random number generator')
     parser.add_argument('--max_key', default=10, type=float)
     parser.add_argument('--max_key_rate', default=0.5, type=float)
-    parser.add_argument('--style_mode', default='plm', type=str,help='plm | pipeline | textcnn')
+    parser.add_argument('--style_mode', default='pipeline', type=str,help='plm | pipeline | textcnn')
     parser.add_argument('--class_name',default='EleutherAI/gpt-neo-2.7B',type=str)
     parser.add_argument('--topk', default=5, type=int,help="top-k words in masked out word prediction")
     parser.add_argument("--direction", type=str, default='1-0',help='0-1 | 1-0')
@@ -31,8 +31,8 @@ def get_args():
     ## Ablation Study:
     parser.add_argument("--semantic_mode", default='kw-sent',type=str,help='kw | sent | kw-sent')
     parser.add_argument("--action",default='all', type=str, help='replace | delete | insert | all')
-    parser.add_argument('--keyword_pos', default=True, type=bool)
-    parser.add_argument("--early_stop",default=True, type=bool)
+    parser.add_argument('--keyword_pos', default=False, type=bool)
+    parser.add_argument("--early_stop",default=False, type=bool)
 
     args, unparsed = parser.parse_known_args()
     return args

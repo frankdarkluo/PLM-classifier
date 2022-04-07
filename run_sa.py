@@ -53,9 +53,7 @@ def main():
                         filemode='w',
                         datefmt='%m/%d/%Y %H:%M:%S',
                         level=logging.INFO)
-
     word_pairs ={"ca n't": "can not","n't":"not"}
-
 
     logging.info(args)
 
@@ -81,6 +79,13 @@ def main():
                 T = max(sa.t_init - sa.C * t, 0)
 
                 #ablation study
+                # num=random.random()
+                # if num>=0.2:
+                #     ops = np.array([1])
+                # elif 0.2>num>=0.1:
+                #     ops = np.array([0])
+                # elif num<0.1:
+                #     ops=np.array([2])
                 if args.action=="all":
                     ops = np.random.randint(0, 3, batch_size)
                 elif args.action=="insert": ops=np.array([0])
