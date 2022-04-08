@@ -46,7 +46,7 @@ class RobertaEditor(nn.Module):
             mask_token_index = torch.where(input_seq == self.tokenizer.mask_token_id)[1]
             token_logits = self.model(input_seq).logits
             masked_token_logits = token_logits[0, mask_token_index, :]
-            mask_words = list(set(self.tokenizer.decode([token.item()]).lower() for token in torch.topk(masked_token_logits, 5, dim=1).indices[0]))
+            mask_words = list(set(self.tokenizer.decode([token.item()]).lower() for token in torch.topk(masked_token_logits, self.topk, dim=1).indices[0]))
 
             for mask_word in mask_words:
                 cand_sent = input_text.replace("<mask>", mask_word.strip()).lower()

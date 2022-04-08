@@ -6,9 +6,6 @@ from transformers import pipeline,RobertaTokenizer, RobertaForMaskedLM,GPTNeoFor
     GPT2LMHeadModel,GPTJForCausalLM,RobertaForSequenceClassification
 from utils import predict_next_word,pipe,pytorch_cos_sim,softmax
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# pipeline_classifier = pipeline("sentiment-analysis", model="siebert/sentiment-roberta-large-english",
-#                                framework="pt",device=torch.cuda.current_device())
-#pipeline_classifier = pipeline("sentiment-analysis")
 
 class SimulatedAnnealing(nn.Module):
     def __init__(self, option,editor,t_init, C, fluency_weight, keyword_weight, sent_weight, style_weight, max_steps):
@@ -80,10 +77,11 @@ class SimulatedAnnealing(nn.Module):
         return prob_new_prob,style_label
 
     def fluency_scorer(self,ref_news): #Refer to https://huggingface.co/docs/transformers/perplexity
-        _, gpt_tokens=self.editor.plm_token(ref_news)
-        input_ids = torch.tensor([self.tokenizer.convert_tokens_to_ids(gpt_token) for gpt_token in gpt_tokens]).to(
-            device)
-
+        # _, gpt_tokens=self.editor.plm_token(ref_news)
+        # input_ids = torch.tensor([self.tokenizer.convert_tokens_to_ids(gpt_token) for gpt_token in gpt_tokens]).to(
+        #     device)
+        encodings = self.tokenizer(ref_news, return_tensors="pt").to(device)
+        input_ids = encodings.input_ids
         nlls = []
         for i in range(0, input_ids.size(1), self.stride):
             begin_loc = max(i + self.stride - self.ppl_max_len, 0)
