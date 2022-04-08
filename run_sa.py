@@ -1,6 +1,4 @@
-import json
 import math
-import os.path
 import os
 import logging
 from sampling import SimulatedAnnealing
@@ -15,7 +13,6 @@ from dateutil import tz
 tzone = tz.gettz('America/Edmonton')
 warnings.filterwarnings('ignore')
 import torch
-#os.environ["CUDA_VISIBLE_DEVICES"]="1"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def main():
@@ -24,7 +21,6 @@ def main():
     editor.to(device)
     sa = SimulatedAnnealing(args, editor, args.t_init, args.C, args.fluency_weight, args.keyword_weight,
                             args.sent_weight,args.style_weight, args.max_steps).to(device)
-
     of_dir = 'results/' + args.output_dir
     if not os.path.exists(of_dir):
         os.makedirs(of_dir)
