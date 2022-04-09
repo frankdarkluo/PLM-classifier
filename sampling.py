@@ -20,12 +20,12 @@ class SimulatedAnnealing(nn.Module):
         self.style_weight=style_weight
         self.max_steps = max_steps
         self.stride=1024
-        # if 'gpt-neo' in self.option.class_name:
-        #     self.plm = GPTNeoForCausalLM.from_pretrained(self.option.class_name)
-        # elif 'gpt-j' in self.option.class_name:
-        #     self.plm = GPTJForCausalLM.from_pretrained(self.option.class_name)
-        # self.plm.eval()
-        # self.plm.to(device)
+        if 'gpt-neo' in self.option.class_name:
+            self.plm = GPTNeoForCausalLM.from_pretrained(self.option.class_name)
+        elif 'gpt-j' in self.option.class_name:
+            self.plm = GPTJForCausalLM.from_pretrained(self.option.class_name)
+        self.plm.eval()
+        self.plm.to(device)
         self.tokenizer = GPT2Tokenizer.from_pretrained(self.option.class_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.max_len = self.option.max_len
@@ -52,7 +52,6 @@ class SimulatedAnnealing(nn.Module):
         postfix = '" is'
         prob_new_probs=[]
         for idx, sent in enumerate(ref_news):
-
             text=ref_news[idx]
             if self.option.style_mode == 'plm':
                 # TODO: Define the prompt and the PLM classification score!
@@ -77,9 +76,11 @@ class SimulatedAnnealing(nn.Module):
         return prob_new_prob,style_label
 
     def fluency_scorer(self,ref_news): #Refer to https://huggingface.co/docs/transformers/perplexity
+        # using the following three lines may largely increase perplexity, which is not good
         # _, gpt_tokens=self.editor.plm_token(ref_news)
         # input_ids = torch.tensor([self.tokenizer.convert_tokens_to_ids(gpt_token) for gpt_token in gpt_tokens]).to(
         #     device)
+
         encodings = self.tokenizer(ref_news, return_tensors="pt").to(device)
         input_ids = encodings.input_ids
         nlls = []
@@ -95,7 +96,6 @@ class SimulatedAnnealing(nn.Module):
                 outputs = self.model(input_ids, labels=target_ids)
                 neg_log_likelihood = outputs[0] * trg_len
             nlls.append(neg_log_likelihood)
-
         ppl = torch.exp(torch.stack(nlls).sum() / end_loc)
 
         return 1/ppl
