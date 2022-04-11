@@ -124,9 +124,11 @@ def main():
                 if args.early_stop==True:
                     if args.direction=='0-1' and new_style_label=='positive':
                         print("Early Stopping!")
+                        logging.info("Early Stopping!")
                         break
                     elif args.direction=='1-0' and new_style_label=='negative':
                         print("Early Stopping!")
+                        logging.info("Early Stopping")
                         break
 
             logging.info('\n')

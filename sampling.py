@@ -48,8 +48,8 @@ class SimulatedAnnealing(nn.Module):
 
     def style_scorer(self,ref_news):
 
-        prefix = 'the sentiment of the text "'
-        postfix = '" is'
+        prefix = 'is the sentiment of the text { '
+        postfix = ' } positive or negative ?'
         prob_new_probs=[]
         for idx, sent in enumerate(ref_news):
             text=ref_news[idx]

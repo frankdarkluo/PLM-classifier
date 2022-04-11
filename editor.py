@@ -141,7 +141,7 @@ class RobertaEditor(nn.Module):
 
         outputs = self.model(**inputs, output_hidden_states=True)
         sentence_embeddings = self.mean_pooling(outputs, inputs['attention_mask'])
-        hidden_states = outputs.hidden_states[-1][:, 1:-1, :].to(device)
+        hidden_states = outputs.hidden_states[-1][:, 1:self.max_len+1, :].to(device)
 
         return hidden_states, sentence_embeddings
 

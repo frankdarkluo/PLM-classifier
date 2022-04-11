@@ -21,6 +21,7 @@ with open(args.outfile,'r',encoding='utf8') as f:
         if idx< 500:
             res=classifier(line.strip())
             if res[0]['label'].lower()=='negative':
+                print(line.strip())
                 pos+=1
 
             else:neg+=1

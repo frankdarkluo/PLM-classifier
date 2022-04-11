@@ -25,6 +25,13 @@ def softmax(x):
     softmax_x = exp_x / torch.sum(exp_x)
     return softmax_x
 
+#gpt-j-6b
+    # it 's small and they make you feel not right at home
+    # positive score: 0.71
+    # negative score: 0.29 --> 0.68 ; 0.01--> 0.99
+
+    # 0.6-> 6 -> 36
+    # 0.4-> 4 -> 16
 def predict_next_word(model,tokenizer,input_text,k,direction):
     indexed_tokens = tokenizer.encode(input_text)
     # Convert indexed tokens in a PyTorch tensor
@@ -55,15 +62,17 @@ def predict_next_word(model,tokenizer,input_text,k,direction):
     pos_prob = softmax_emo_logits[0]
     neg_prob = softmax_emo_logits[1]
     if direction=='0-1':
-        output_prob = (1 - neg_prob) * pos_prob  # make the prob more robust
+        output_prob =  pos_prob  # make the prob more robust
     else: #1-0
-        output_prob= (1-pos_prob)*neg_prob
+        output_prob=  neg_prob
 
     return output_prob
 
+#huggingface classifier
 def pipe(res_cand,direction):
     label = res_cand[0]['label'].lower()
     score = res_cand[0]['score']
+
     if direction=='0-1':
         classifi_prob = score if label == 'positive' else 1- score
     else: # 1-0
