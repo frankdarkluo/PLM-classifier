@@ -5,6 +5,7 @@ import numpy as np
 import RAKE
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 import nltk
+from string import punctuation
 # nltk.download('averaged_perceptron_tagger')
 
 class RobertaEditor(nn.Module):
@@ -37,6 +38,7 @@ class RobertaEditor(nn.Module):
     def generate(self, input_texts, max_len):
 
         sent_list = []
+        punctuation_strings='!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'+'<s>'+'</s>'
         #mask_words = [output['token_str'].strip() for output in self.unmasker(input_texts, top_k=self.topk)]
 
         for input_text in input_texts:
@@ -47,6 +49,8 @@ class RobertaEditor(nn.Module):
             token_logits = self.model(input_seq).logits
             masked_token_logits = token_logits[0, mask_token_index, :]
             mask_words = list(set(self.tokenizer.decode([token.item()]).lower() for token in torch.topk(masked_token_logits, self.topk, dim=1).indices[0]))
+            # delete the punctuations
+            mask_words =[token for token in mask_words if token not in punctuation_strings]
 
             for mask_word in mask_words:
                 cand_sent = input_text.replace("<mask>", mask_word.strip()).lower()
