@@ -2,7 +2,8 @@ from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from datasets import load_dataset
 import numpy as np
 import argparse
-device = "cuda"
+import torch
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_id = "gpt2"
 model = GPT2LMHeadModel.from_pretrained(model_id).to(device)
 tokenizer = GPT2Tokenizer.from_pretrained(model_id)

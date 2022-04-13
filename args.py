@@ -21,6 +21,7 @@ def get_args():
     parser.add_argument("--direction", type=str, default='1-0',help='0-1 | 1-0')
     parser.add_argument("--fluency_weight", type=int, default=1, help='fluency')
     parser.add_argument("--sent_weight",type=int, default=1, help='semantic similarity')
+    parser.add_argument("--bleu_weight",type=int, default=1, help="bleu score")
     parser.add_argument("--keyword_weight", type=float, default=8)
     parser.add_argument("--style_weight", type=int, default=1, help='style')
     parser.add_argument("--t_init",type=float,default=3e-2)

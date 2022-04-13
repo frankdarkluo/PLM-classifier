@@ -19,8 +19,7 @@ def main():
     args = get_args()
     editor = RobertaEditor(args)
     editor.to(device)
-    sa = SimulatedAnnealing(args, editor, args.t_init, args.C, args.fluency_weight, args.keyword_weight,
-                            args.sent_weight,args.style_weight, args.max_steps).to(device)
+    sa = SimulatedAnnealing(args, editor).to(device)
     of_dir = 'results/' + args.output_dir
     if not os.path.exists(of_dir):
         os.makedirs(of_dir)
@@ -71,7 +70,7 @@ def main():
             batch_size = len(ref_olds)  # 1
             ref_oris=ref_olds
 
-            for t in range(sa.max_steps):
+            for t in range(args.max_steps):
                 T = max(sa.t_init - sa.C * t, 0)
 
                 #ablation study
@@ -123,22 +122,35 @@ def main():
                                         ref_new_score.item(), old_style_score.item(), new_style_score.item()))
                     ref_olds = [ref_hat]
 
-                    if args.early_stop==True:
-                        if args.direction=='0-1' and new_style_label=='positive':
-                            print("Early Stopping!")
-                            logging.info("Early Stopping!")
-                            break
-                        elif args.direction=='1-0' and new_style_label=='negative':
-                            print("Early Stopping!")
-                            logging.info("Early Stopping")
-                            break
+                if args.early_stop==True:
+                    if args.direction=='0-1' and new_style_label=='positive':
+                        print("Early Stopping!")
+                        logging.info("Early Stopping!")
+                        print("A is {}, T is {}:\t{} total score:{} {} style_score {} {}"
+                              .format(accept_prob, T, ref_hat, ref_old_score.item(),
+                                      ref_new_score.item(), old_style_score.item(), new_style_score.item()))
+                        logging.info("A is {}, T is {}:\t{}\t total score:{} {}\t style_score {} {}"
+                                     .format(accept_prob, T, ref_hat, ref_old_score.item(),
+                                             ref_new_score.item(), old_style_score.item(), new_style_score.item()))
+                        break
+                    elif args.direction=='1-0' and new_style_label=='negative':
+                        print("Early Stopping!")
+                        logging.info("Early Stopping")
+                        print("A is {}, T is {}:\t{} total score:{} {} style_score {} {}"
+                              .format(accept_prob, T, ref_hat, ref_old_score.item(),
+                                      ref_new_score.item(), old_style_score.item(), new_style_score.item()))
+                        logging.info("A is {}, T is {}:\t{}\t total score:{} {}\t style_score {} {}"
+                                     .format(accept_prob, T, ref_hat, ref_old_score.item(),
+                                             ref_new_score.item(), old_style_score.item(), new_style_score.item()))
+                        break
 
             logging.info('\n')
-
-            # return ref_olds
-            for sa_output in ref_olds:
-                f.write(sa_output + '\n')
-                f.flush()
+            # return ref_hat
+            f.write(ref_hat + '\n')
+            f.flush()
+            # for sa_output in ref_olds:
+            #     f.write(ref_olds + '\n')
+            #     f.flush()
 
 if __name__=="__main__":
     main()

@@ -1,10 +1,14 @@
-from transformers import pipeline
+from transformers import pipeline,RobertaTokenizer,RobertaForSequenceClassification
 import torch
 import math
 import argparse
+from utils import softmax
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #classifier = pipeline("sentiment-analysis")
 classifier = pipeline("sentiment-analysis",model="siebert/sentiment-roberta-large-english")
+sty_tokenizer = RobertaTokenizer.from_pretrained("siebert/sentiment-roberta-large-english")
+sty_model = RobertaForSequenceClassification.from_pretrained("siebert/sentiment-roberta-large-english").to(device)
 #classifier = pipeline(model="EleutherAI/gpt-neo-1.3B")
 
 pos=0
@@ -13,6 +17,18 @@ neg=0
 parser = argparse.ArgumentParser()
 parser.add_argument('--outfile', default='results/try1/2022-03-27_03:18:22_pipeline_3_1-0.txt', type=str)
 args=parser.parse_args()
+
+def classifier(text):
+    inputs = sty_tokenizer(text, return_tensors="pt").to(device)
+    with torch.no_grad():
+        logits = sty_model(**inputs).logits
+    softmax_logits = softmax(logits)
+    outputs = {}
+    predicted_class_id = softmax_logits.argmax().item()
+    outputs['label'] = sty_model.config.id2label[predicted_class_id]
+    outputs['score'] = softmax_logits.squeeze()[predicted_class_id]
+
+    return [outputs]
 
 with open(args.outfile,'r',encoding='utf8') as f:
     datas=f.readlines()

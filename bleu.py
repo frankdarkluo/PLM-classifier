@@ -55,7 +55,5 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--ref_path', default='data/yelp/pos2neg_50references/', type=str)
     parser.add_argument('--gen_path', default='BLEU/pos2neg/generate_pos2neg.txt', type=str)
-    # parser.add_argument('--ori_path', default='data/yelp/test.0', type=str)
-    parser.add_argument("--task", type=str, default='zero-shot')
     args = parser.parse_args()
     metric(args)

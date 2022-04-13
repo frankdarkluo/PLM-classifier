@@ -62,9 +62,9 @@ def predict_next_word(model,tokenizer,input_text,k,direction):
     pos_prob = softmax_emo_logits[0]
     neg_prob = softmax_emo_logits[1]
     if direction=='0-1':
-        output_prob =  pos_prob  # make the prob more robust
+        output_prob =  pos_prob / neg_prob  # make the prob more robust
     else: #1-0
-        output_prob=  neg_prob
+        output_prob=  neg_prob / pos_prob
 
     return output_prob
 

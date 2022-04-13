@@ -6,30 +6,38 @@ from transformers import pipeline,RobertaTokenizer, RobertaForMaskedLM,GPTNeoFor
     GPT2LMHeadModel,GPTJForCausalLM,RobertaForSequenceClassification
 from utils import predict_next_word,pipe,pytorch_cos_sim,softmax
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+BLEU_WEIGHTS_MEAN = [
+    [1.0],
+    [0.5, 0.5],
+    [1/3, 1/3, 1/3],
+    [0.25, 0.25, 0.25, 0.25],
+]
+from nltk.translate.bleu_score import corpus_bleu
 
 class SimulatedAnnealing(nn.Module):
-    def __init__(self, option,editor,t_init, C, fluency_weight, keyword_weight, sent_weight, style_weight, max_steps):
+    def __init__(self, opt,editor):
         super(SimulatedAnnealing,self).__init__()
-        self.option=option
+        self.opt=opt
         self.editor = editor
-        self.t_init = t_init
-        self.C = C
-        self.fluency_weight = fluency_weight # 3
-        self.keyword_weight = keyword_weight # 1
-        self.sent_weight = sent_weight
-        self.style_weight=style_weight
-        self.max_steps = max_steps
+        self.t_init = self.opt.t_init
+        self.C = self.opt.C
+        self.fluency_weight = self.opt.fluency_weight # 3
+        self.keyword_weight = self.opt.keyword_weight # 1
+        self.sent_weight = self.opt.sent_weight
+        self.style_weight=self.opt.style_weight
+        self.bleu_weight=self.opt.bleu_weight
         self.stride=1024
-        if self.option.style_mode=='plm':
-            if 'gpt-neo' in self.option.class_name:
-                self.plm = GPTNeoForCausalLM.from_pretrained(self.option.class_name)
-            elif 'gpt-j' in self.option.class_name:
-                self.plm = GPTJForCausalLM.from_pretrained(self.option.class_name)
+
+        if self.opt.style_mode=='plm':
+            if 'gpt-neo' in self.opt.class_name:
+                self.plm = GPTNeoForCausalLM.from_pretrained(self.opt.class_name)
+            elif 'gpt-j' in self.opt.class_name:
+                self.plm = GPTJForCausalLM.from_pretrained(self.opt.class_name)
             self.plm.eval()
             self.plm.to(device)
-        self.tokenizer = GPT2Tokenizer.from_pretrained(self.option.class_name)
+        self.tokenizer = GPT2Tokenizer.from_pretrained(self.opt.class_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token
-        self.max_len = self.option.max_len
+        self.max_len = self.opt.max_len
         self.model=GPT2LMHeadModel.from_pretrained('gpt2').to(device)
         self.ppl_max_len=self.model.config.n_positions
         self.sty_tokenizer=RobertaTokenizer.from_pretrained("siebert/sentiment-roberta-large-english")
@@ -54,22 +62,22 @@ class SimulatedAnnealing(nn.Module):
         prob_new_probs=[]
         for idx, sent in enumerate(ref_news):
             text=ref_news[idx]
-            if self.option.style_mode == 'plm':
+            if self.opt.style_mode == 'plm':
                 # TODO: Define the prompt and the PLM classification score!
                 input_candidate_text = prefix + text + postfix
                 style_prob = predict_next_word(self.plm, self.tokenizer, input_candidate_text,
-                                                                k=len(self.tokenizer), direction=self.option.direction)
-                if self.option.early_stop==True:
+                                                                k=len(self.tokenizer), direction=self.opt.direction)
+                if self.opt.early_stop==True:
                     res_cand = self.pipeline_classifier(text)
                     style_label=res_cand[0]['label'].lower()
                 else:
                     style_label=None
                 prob_new_probs.append(math.pow(style_prob, self.style_weight))
 
-            elif self.option.style_mode == 'pipeline':
+            elif self.opt.style_mode == 'pipeline':
 
                 res_cand = self.pipeline_classifier(text)
-                style_prob,style_label=pipe(res_cand,self.option.direction)
+                style_prob,style_label=pipe(res_cand,self.opt.direction)
                 prob_new_probs.append(math.pow(style_prob, self.style_weight))
 
         prob_new_prob=torch.tensor(prob_new_probs).cuda()
@@ -126,17 +134,17 @@ class SimulatedAnnealing(nn.Module):
         ref_old_embeds, mean_old_embeds = self.editor.get_contextual_word_embeddings(ref_olds)
 
         #-----keyword-level sim------
-        if self.option.semantic_mode=='kw':
+        if self.opt.semantic_mode=='kw':
             kw_sim=self.keyword_sim(ref_new_embeds,ref_old_embeds,state_vec)
             similarity = kw_sim.pow(self.keyword_weight)
 
         #-----sent-level sim------
-        elif self.option.semantic_mode=='sent':
+        elif self.opt.semantic_mode=='sent':
             sent_sim=pytorch_cos_sim(mean_new_embeds, mean_old_embeds)
             similarity=sent_sim.pow(self.sent_weight)
 
         # -----kw-sent level sim------
-        elif self.option.semantic_mode=='kw-sent':
+        elif self.opt.semantic_mode=='kw-sent':
             kw_sim=self.keyword_sim(ref_new_embeds,ref_old_embeds,state_vec)
             sent_sim= pytorch_cos_sim(mean_new_embeds, mean_old_embeds)
             similarity = kw_sim.pow(self.keyword_weight)* sent_sim.pow(self.sent_weight)
@@ -147,10 +155,18 @@ class SimulatedAnnealing(nn.Module):
         semantic_scores = self.semantic_scorer(input_news,ref_oris,state_vec)
         fluency_scores = self.fluency_scorer(input_news)
         style_score,style_label=self.style_scorer(input_news)
+        bleu_score=self.overlap_score(input_news,ref_oris)
         total_scores = fluency_scores.pow(self.fluency_weight) * semantic_scores \
-                       * style_score
+                       * style_score * bleu_score.pow(self.bleu_weight)
 
-        return total_scores,style_score, style_label
+        return total_scores.squeeze(),style_score, style_label
+
+    def overlap_score(self,input_news,ref_oris):
+        new_tokens=[input_new.split() for input_new in input_news]
+        ori_tokens=[[ref_ori.split() for ref_ori in ref_oris]]
+        bleu4=corpus_bleu(ori_tokens, new_tokens, weights=BLEU_WEIGHTS_MEAN[3])
+
+        return torch.tensor(bleu4).to(device)
 
     def choose_action(self,c):
         r = np.random.random()
