@@ -16,7 +16,6 @@ class RobertaEditor(nn.Module):
         self.topk = opt.topk
         self.model = RobertaForMaskedLM.from_pretrained(self.model_dir, return_dict=True).to(device)
         self.tokenizer = RobertaTokenizer.from_pretrained(self.model_dir)
-        self.model.resize_token_embeddings(len(self.tokenizer))
         self.ops_map = [self.insert, self.replace, self.delete]
         #self.unmasker = pipeline("fill-mask", model=self.model_dir,framework="pt",device=torch.cuda.current_device())
         self.max_len = opt.max_len
@@ -38,7 +37,7 @@ class RobertaEditor(nn.Module):
     def generate(self, input_texts, max_len):
 
         sent_list = []
-        punctuation_strings='!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'+'<s>'+'</s>'
+        punctuation_strings='!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'+'<s>'+'</s>'+'bcdefghjklmnopqrstuvwxyz'+'0123456789'
         #mask_words = [output['token_str'].strip() for output in self.unmasker(input_texts, top_k=self.topk)]
 
         for input_text in input_texts:

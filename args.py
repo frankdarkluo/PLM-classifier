@@ -33,6 +33,7 @@ def get_args():
     parser.add_argument("--action",default='all', type=str, help='replace | delete | insert | all')
     parser.add_argument('--keyword_pos', default=False, type=bool)
     parser.add_argument("--early_stop",default=False, type=bool)
+    parser.add_argument("--prob_actions",default=False, type=bool)
 
     args, unparsed = parser.parse_known_args()
     return args

@@ -20,12 +20,13 @@ class SimulatedAnnealing(nn.Module):
         self.style_weight=style_weight
         self.max_steps = max_steps
         self.stride=1024
-        if 'gpt-neo' in self.option.class_name:
-            self.plm = GPTNeoForCausalLM.from_pretrained(self.option.class_name)
-        elif 'gpt-j' in self.option.class_name:
-            self.plm = GPTJForCausalLM.from_pretrained(self.option.class_name)
-        self.plm.eval()
-        self.plm.to(device)
+        if self.option.style_mode=='plm':
+            if 'gpt-neo' in self.option.class_name:
+                self.plm = GPTNeoForCausalLM.from_pretrained(self.option.class_name)
+            elif 'gpt-j' in self.option.class_name:
+                self.plm = GPTJForCausalLM.from_pretrained(self.option.class_name)
+            self.plm.eval()
+            self.plm.to(device)
         self.tokenizer = GPT2Tokenizer.from_pretrained(self.option.class_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.max_len = self.option.max_len
@@ -112,8 +113,11 @@ class SimulatedAnnealing(nn.Module):
         diag_norm1 = torch.diag_embed(norm1)
         sim_mat = torch.bmm(torch.bmm(diag_norm2, emb_mat), diag_norm1)  # K,8,7
         sim_vec, _ = torch.max(sim_mat, dim=2)  # K,8
-        kw_similarity, _ = torch.min(sim_vec[:, weight2], dim=1)
-
+        try:
+            kw_similarity, _ = torch.min(sim_vec[:, weight2], dim=1)
+        except:
+            weight2[0]=True
+            kw_similarity, _ = torch.min(sim_vec[:, weight2], dim=1)
         return kw_similarity
 
     def semantic_scorer(self,ref_news, ref_olds,state_vec=None):

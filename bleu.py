@@ -22,7 +22,7 @@ def load_data(file):
     return str_list
 
 def load_ref_data(ref_path):
-    refs=[[]]*47
+    refs=[[]]*50
 
     for file in os.listdir(ref_path):
         with open(ref_path+file,'r',encoding='windows-1252') as f:

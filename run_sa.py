@@ -75,18 +75,20 @@ def main():
                 T = max(sa.t_init - sa.C * t, 0)
 
                 #ablation study
-                # num=random.random()
-                # if num>=0.2:
-                #     ops = np.array([1])
-                # elif 0.2>num>=0.1:
-                #     ops = np.array([0])
-                # elif num<0.1:
-                #     ops=np.array([2])
-                if args.action=="all":
-                    ops = np.random.randint(0, 3, batch_size)
-                elif args.action=="insert": ops=np.array([0])
-                elif args.action=="replace":ops=np.array([1])
-                elif args.action=="delete": ops=np.array([2])
+                if args.prob_actions==True:
+                    num=random.random()
+                    if num>=0.6:
+                        ops = np.array([1])
+                    elif 0.6>num>=0.2:
+                        ops = np.array([2])
+                    elif num<0.2: # insert affect the BLEU most
+                        ops=np.array([0])
+                else:
+                    if args.action=="all":
+                        ops = np.random.randint(0, 3, batch_size)
+                    elif args.action=="insert": ops=np.array([0])
+                    elif args.action=="replace":ops=np.array([1])
+                    elif args.action=="delete": ops=np.array([2])
 
                 positions = [random.randint(0, len(i.split()) - 1) for i in ref_olds]
 
@@ -100,12 +102,12 @@ def main():
                             positions = [random.randint(0, len(i.split()) - 1) for i in ref_olds]
 
                 ref_news = editor.edit(ref_olds, ops, positions, sa.max_len)
-                accept_probs, index, ref_old_score, ref_new_score, old_style_score,new_style_score, new_style_label \
+                accept_probs, index, ref_old_score, ref_new_score, old_style_score,new_style_scores, new_style_labels \
                     = sa.acceptance_prob(ref_news,ref_olds, ref_oris, T, ops, state_vec)
 
                 ref_hat = ref_news[index]
-                new_style_score=new_style_score[index]
-                new_style_label=new_style_label[index]
+                new_style_score=new_style_scores[index]
+                new_style_label=new_style_labels[index]
 
                 if batch_size == 1:
                     accept_prob = accept_probs[0]
@@ -116,22 +118,23 @@ def main():
                     print("A is {}, T is {}:\t{} total score:{} {} style_score {} {}"
                           .format(accept_prob, T, ref_hat, ref_old_score.item(),
                                   ref_new_score.item(), old_style_score.item(), new_style_score.item()))
-                    logging.info("A is {}, T is {}:\t{}\ttotal score:{} {}\t style_score {} {}"
+                    logging.info("A is {}, T is {}:\t{}\t total score:{} {}\t style_score {} {}"
                                 .format(accept_prob, T, ref_hat, ref_old_score.item(),
                                         ref_new_score.item(), old_style_score.item(), new_style_score.item()))
                     ref_olds = [ref_hat]
 
-                if args.early_stop==True:
-                    if args.direction=='0-1' and new_style_label=='positive':
-                        print("Early Stopping!")
-                        logging.info("Early Stopping!")
-                        break
-                    elif args.direction=='1-0' and new_style_label=='negative':
-                        print("Early Stopping!")
-                        logging.info("Early Stopping")
-                        break
+                    if args.early_stop==True:
+                        if args.direction=='0-1' and new_style_label=='positive':
+                            print("Early Stopping!")
+                            logging.info("Early Stopping!")
+                            break
+                        elif args.direction=='1-0' and new_style_label=='negative':
+                            print("Early Stopping!")
+                            logging.info("Early Stopping")
+                            break
 
             logging.info('\n')
+
             # return ref_olds
             for sa_output in ref_olds:
                 f.write(sa_output + '\n')
