@@ -122,10 +122,10 @@ class SimulatedAnnealing(nn.Module):
         sim_mat = torch.bmm(torch.bmm(diag_norm2, emb_mat), diag_norm1)  # K,8,7
         sim_vec, _ = torch.max(sim_mat, dim=2)  # K,8
         try:
-            kw_similarity, _ = torch.min(sim_vec[:, weight2], dim=1)
+            kw_similarity, _ = torch.max(sim_vec[:, weight2], dim=1)
         except:
             weight2[0]=True
-            kw_similarity, _ = torch.min(sim_vec[:, weight2], dim=1)
+            kw_similarity, _ = torch.max(sim_vec[:, weight2], dim=1)
         return kw_similarity
 
     def semantic_scorer(self,ref_news, ref_olds,state_vec=None):
@@ -164,9 +164,10 @@ class SimulatedAnnealing(nn.Module):
     def overlap_score(self,input_news,ref_oris):
         new_tokens=[input_new.split() for input_new in input_news]
         ori_tokens=[[ref_ori.split() for ref_ori in ref_oris]]
-        bleu4=corpus_bleu(ori_tokens, new_tokens, weights=BLEU_WEIGHTS_MEAN[3])
+        #just calculate the 1-gram and that's all
+        bleu1=corpus_bleu(ori_tokens, new_tokens, weights=BLEU_WEIGHTS_MEAN[0])
 
-        return torch.tensor(bleu4).to(device)
+        return torch.tensor(bleu1).to(device)
 
     def choose_action(self,c):
         r = np.random.random()
