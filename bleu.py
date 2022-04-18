@@ -22,11 +22,12 @@ def load_data(file):
     return str_list
 
 def load_ref_data(ref_path):
-    refs=[[]]*50
+    N=50
+    refs=[[]]*N
 
     for file in os.listdir(ref_path):
         with open(ref_path+file,'r',encoding='windows-1252') as f:
-            lines=f.readlines()
+            lines=f.readlines()[:N]
             for j, line in enumerate(lines):
                 line = line.strip().lower().split()
                 temp=refs[j].copy()

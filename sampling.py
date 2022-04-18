@@ -13,6 +13,8 @@ BLEU_WEIGHTS_MEAN = [
     [0.25, 0.25, 0.25, 0.25],
 ]
 from nltk.translate.bleu_score import corpus_bleu
+# model_name='distilbert-base-uncased-finetuned-sst-2-english'
+# sst2_classifier = pipeline("sentiment-analysis",model=model_name)
 
 class SimulatedAnnealing(nn.Module):
     def __init__(self, opt,editor):
@@ -57,8 +59,8 @@ class SimulatedAnnealing(nn.Module):
 
     def style_scorer(self,ref_news):
 
-        prefix = 'is the sentiment of the text { '
-        postfix = ' } positive or negative ?'
+        prefix = 'the sentiment of the text { '
+        postfix = ' } is '
         prob_new_probs=[]
         for idx, sent in enumerate(ref_news):
             text=ref_news[idx]
@@ -68,7 +70,8 @@ class SimulatedAnnealing(nn.Module):
                 style_prob = predict_next_word(self.plm, self.tokenizer, input_candidate_text,
                                                                 k=len(self.tokenizer), direction=self.opt.direction)
                 if self.opt.early_stop==True:
-                    res_cand = self.pipeline_classifier(text)
+                    #res_cand = sst2_classifier(text)
+                    res_cand=self.pipeline_classifier(text)
                     style_label=res_cand[0]['label'].lower()
                 else:
                     style_label=None

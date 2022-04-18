@@ -72,8 +72,6 @@ def main():
             batch_size = len(ref_olds)  # 1
             ref_oris=ref_olds
 
-            state_vec, pos_list = editor.state_vec(ref_olds)
-
             for t in range(args.max_steps):
                 T = max(sa.t_init - sa.C * t, 0)
 
@@ -95,8 +93,8 @@ def main():
 
                 positions = [np.random.randint(0, len(i.split()) - 1) for i in ref_olds]
 
-                # if args.semantic_mode != 'sent':
-                #     state_vec, pos_list = editor.state_vec(ref_olds)
+                if args.semantic_mode != 'sent':
+                    state_vec, pos_list = editor.state_vec(ref_olds)
 
                 #keep nouns unchangeable
                 if args.keyword_pos==True:
@@ -116,15 +114,15 @@ def main():
                     accept_prob = accept_probs[0]
 
                 # for idx, accept_prob in enumerate(accept_probs):
-                if sa.choose_action([accept_prob, 1 - accept_prob]) == 0:
-                # if accept_prob == 1:
-                    print("A is {}, T is {}:\t{} total score:{} {} style_score {} {}"
-                          .format(accept_prob, T, ref_hat, ref_old_score.item(),
-                                  ref_new_score.item(), old_style_score.item(), new_style_score.item()))
-                    logging.info("A is {}, T is {}:\t{}\t total score:{} {}\t style_score {} {}"
-                                .format(accept_prob, T, ref_hat, ref_old_score.item(),
-                                        ref_new_score.item(), old_style_score.item(), new_style_score.item()))
-                    ref_olds = [ref_hat]
+                # if sa.choose_action([accept_prob, 1 - accept_prob]) == 0:
+                # # if accept_prob == 1:
+                #     print("A is {}, T is {}:\t{} total score:{} {} style_score {} {}"
+                #           .format(accept_prob, T, ref_hat, ref_old_score.item(),
+                #                   ref_new_score.item(), old_style_score.item(), new_style_score.item()))
+                #     logging.info("A is {}, T is {}:\t{}\t total score:{} {}\t style_score {} {}"
+                #                 .format(accept_prob, T, ref_hat, ref_old_score.item(),
+                #                         ref_new_score.item(), old_style_score.item(), new_style_score.item()))
+                #     ref_olds = [ref_hat]
 
                 if args.early_stop==True:
                     if args.direction=='0-1' and new_style_label=='positive':
