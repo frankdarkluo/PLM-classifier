@@ -37,6 +37,7 @@ class SimulatedAnnealing(nn.Module):
                 self.plm = GPTJForCausalLM.from_pretrained(self.opt.class_name)
             self.plm.eval()
             self.plm.to(device)
+            self.plm.parallelize()
         self.tokenizer = GPT2Tokenizer.from_pretrained(self.opt.class_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.max_len = self.opt.max_len

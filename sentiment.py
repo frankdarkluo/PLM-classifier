@@ -31,14 +31,16 @@ def classifier(text):
 
     return [outputs]
 
+
 with open(args.outfile,'r',encoding='utf8') as f:
     datas=f.readlines()
 
     for idx,line in enumerate(datas):
         if idx< 500:
+
             res=classifier(line.strip())
             if res[0]['label'].lower()=='negative':
-                print(line.strip())
+                #print(line.strip())
                 pos+=1
 
             else:neg+=1

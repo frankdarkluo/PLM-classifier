@@ -21,8 +21,7 @@ def load_data(file):
 
     return str_list
 
-def load_ref_data(ref_path):
-    N=50
+def load_ref_data(ref_path,N=50):
     refs=[[]]*N
 
     for file in os.listdir(ref_path):
@@ -38,7 +37,7 @@ def load_ref_data(ref_path):
 def metric(args):
 
     infer =load_data(args.gen_path)
-    golden=load_ref_data(args.ref_path)
+    golden=load_ref_data(args.ref_path,args.N)
 
     # eval bleu
     sf=SmoothingFunction()
@@ -56,5 +55,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--ref_path', default='data/yelp/pos2neg_50references/', type=str)
     parser.add_argument('--gen_path', default='BLEU/pos2neg/generate_pos2neg.txt', type=str)
+    parser.add_argument("--N",default=50,type=int)
     args = parser.parse_args()
     metric(args)

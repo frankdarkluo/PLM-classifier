@@ -1,4 +1,4 @@
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from transformers import GPT2LMHeadModel, GPT2Tokenizer,AutoTokenizer
 from datasets import load_dataset
 import numpy as np
 import argparse
@@ -27,8 +27,8 @@ perpl=[]
 with open(args.outfile,'r',encoding='utf8') as f:
     datas=f.readlines()
     for data in datas:
-        _, gpt_tokens=rbt_editor.plm_token([data])
-        #input_ids = torch.tensor([tokenizer.convert_tokens_to_ids(gpt_token) for gpt_token in gpt_tokens]).to(device)
+        # _, gpt_tokens=rbt_editor.plm_token([data])
+        # input_ids = torch.tensor([tokenizer.convert_tokens_to_ids(gpt_token) for gpt_token in gpt_tokens]).to(device)
         encodings = tokenizer(data.strip(), return_tensors="pt")
         input_ids=encodings.input_ids
         nlls = []

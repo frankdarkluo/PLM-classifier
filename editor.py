@@ -8,12 +8,13 @@ import nltk
 from string import punctuation
 # nltk.download('averaged_perceptron_tagger')
 
-stopwords='!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~•'#+'bcdefghjklmnopqrstvwxyz'+'0123456789'
-stopwords=set([punc for punc in stopwords]+['<s>']+['</s>'])
-for w in ['!', ',', '.', '?', '-s', '-ly', 's', ')', '...', ':', ',"', '."', ';', '-', ').', '"', '),', '…','"),', '").', '�'
-          '–', '(', '.)', '!)', ".'", ']', '..', '--', '",', '!"', '".', '[', '!!', '&', '….', ')"', '…"', ')."', '].', '):', '],',
-          '),"', "'", '!!!', ':)', '', '.",', '!).', '--', '..."', '....', '—', '/', '.]', '—', ",'", '")', '.""', '.")', "="]:
-    stopwords.add(w)
+stopwords='!"#$%&\'()*+,-–./:;<=>?@[\\]^_`{|}~•…�'+'0123456789'#+'bcdefghjklmnopqrstvwxyz'
+# stopwords=set([punc for punc in stopwords]+['<s>']+['</s>'])
+# for w in ['!', ',', '.', '?', '-s', '-ly', 's', ')', '...', ':', ',"', '."', ';', '-', ').', '"', '),', '…','"),', '").',
+#           '–', '(', '.)', '!)', ".'", ']', '..', '--', '",', '!"', '".', '[', '!!', '&', '….', ')"', '…"', ')."', '].',
+#           '),"', "'", '!!!', ':)', '', '.",', '!).', '--', '..."', '....', '—', '/', '.]', '—', ",'", '")', '.""', '.")',
+#           ":-",'�',"()",'):', '],', "=","----"]:
+#     stopwords.add(w)
 
 class RobertaEditor(nn.Module):
     def __init__(self, opt):
@@ -53,10 +54,12 @@ class RobertaEditor(nn.Module):
             mask_token_index = torch.where(input_seq == self.tokenizer.mask_token_id)[1]
             token_logits = self.model(input_seq).logits
             masked_token_logits = token_logits[0, mask_token_index, :]
-            mask_words = list(set(self.tokenizer.decode([token.item()]).lower() for token in torch.topk(masked_token_logits, self.topk, dim=1).indices[0]))
+            mask_words_list = list(set(self.tokenizer.decode([token.item()]).lower().strip() for token in torch.topk(masked_token_logits, self.topk, dim=1).indices[0]))
             # delete the punctuations
-            mask_words =[token for token in mask_words if token not in stopwords]
-
+            mask_words=[]
+            for token in mask_words_list:
+                if len(set(token) & set(stopwords))==0 and token not in 'bcdefghjklmnopqrstvwxyz':
+                    mask_words.append(token)
             for mask_word in mask_words:
                 cand_sent = input_text.replace("<mask>", mask_word.strip()).lower()
                 cand_sent = ' '.join(cand_sent.split()[:max_len])

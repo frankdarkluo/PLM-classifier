@@ -40,7 +40,8 @@ def main():
     num_batches = math.ceil(len(data) / float(batch_size))
 
     timestamp = datetime.datetime.now().astimezone(tzone).strftime('%Y-%m-%d_%H:%M:%S')
-    output_file = timestamp+'_'+args.task+'_'+args.style_mode + '_' + str(args.style_weight) + '_' + args.direction + '.txt'
+    output_file = timestamp + '_' + args.task + '_' + 'seed=' + str(args.seed) + '_' + args.style_mode + '_' \
+                  + str(args.style_weight) + '_' + args.direction + '.txt'
     log_txt_path=os.path.join(of_dir, output_file.split('.txt')[0] + '.log')
     print(log_txt_path)
     for handler in logging.root.handlers[:]:
