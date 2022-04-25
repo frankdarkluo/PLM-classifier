@@ -33,7 +33,7 @@ def get_args():
     parser.add_argument("--semantic_mode", default='kw-sent',type=str,help='kw | sent | kw-sent')
     parser.add_argument("--action",default='all', type=str, help='replace | delete | insert | all')
     parser.add_argument('--keyword_pos', default=False, type=bool)
-    parser.add_argument("--early_stop",default=False, type=bool)
+    parser.add_argument("--early_stop",default=True, type=bool)
     parser.add_argument("--prob_actions",default=False, type=bool)
     parser.add_argument("--same_pos_edit", default=False, type=bool)
 

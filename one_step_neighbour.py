@@ -30,7 +30,7 @@ def main():
     else: postfix = '1'
 
     if args.task=='sentiment':
-        with open('data/yelp/test_50.'+postfix, 'r', encoding='utf8') as f:
+        with open('data/yelp/test.'+postfix, 'r', encoding='utf8') as f:
             data = f.readlines()
     else:
         with open('data/GYAFC/test_50.'+postfix, 'r', encoding='utf8') as f:
@@ -78,6 +78,7 @@ def main():
             total_score_list = []
             cand_sent_list = []
             state_vec, pos_list = editor.state_vec(ref_olds)
+            flag = 0
             for ops in [0,1,2]:
                 seq_len = len(ref_oris[0].split())
                 ops = np.array([ops])
@@ -94,10 +95,39 @@ def main():
 
                     total_score_list.append(new_style_score)
                     cand_sent_list.append(ref_hat)
-            select_index=np.argmax(total_score_list)
-            select_sent=cand_sent_list[select_index]
-            logging.info('the selected sentence is '.format(select_sent))
-            print('the selected sentence is '.format(select_sent))
+
+                    if args.early_stop == True:
+                        if args.direction == '0-1' and new_style_label == 'positive':
+                            print("Early Stopping!")
+                            logging.info("Early Stopping!")
+                            print("{} \ttotal score:{} {} style_score {} {}"
+                                  .format(ref_hat, ref_old_score.item(),
+                                          ref_new_score.item(), old_style_score.item(), new_style_score.item()))
+                            logging.info("{}\t total score:{} {}\t style_score {} {}"
+                                         .format(ref_hat, ref_old_score.item(),
+                                                 ref_new_score.item(), old_style_score.item(), new_style_score.item()))
+                            flag=1
+                            break
+                        elif args.direction == '1-0' and new_style_label == 'negative':
+                            print("Early Stopping!")
+                            logging.info("Early Stopping!")
+                            print("{}\t total score:{} {} style_score {} {}"
+                                  .format(ref_hat, ref_old_score.item(),
+                                          ref_new_score.item(), old_style_score.item(), new_style_score.item()))
+                            logging.info("{}\t total score:{} {}\t style_score {} {}"
+                                         .format(ref_hat, ref_old_score.item(),
+                                                 ref_new_score.item(), old_style_score.item(), new_style_score.item()))
+                            flag = 1
+                            break
+                break
+
+            if args.early_stop==True and flag==1:
+                select_sent = cand_sent_list[-1]
+            else:
+                select_index=torch.argmax(torch.tensor(total_score_list).cuda())
+                select_sent=cand_sent_list[select_index]
+            logging.info('the selected sentence is {}'.format(select_sent))
+            print('the selected sentence is {}'.format(select_sent))
 
             logging.info('\n')
             # return ref_hat

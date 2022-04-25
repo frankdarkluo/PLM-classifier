@@ -7,7 +7,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model_name1='distilbert-base-uncased-finetuned-sst-2-english'
 model_name2="siebert/sentiment-roberta-large-english"
-pipeline_classifier = pipeline("sentiment-analysis",model=model_name2)
+pipeline_classifier = pipeline("sentiment-analysis",model=model_name1)
 sty_tokenizer = RobertaTokenizer.from_pretrained(model_name2)
 sty_model = RobertaForSequenceClassification.from_pretrained(model_name2).to(device)
 #classifier = pipeline(model="EleutherAI/gpt-neo-1.3B")

@@ -56,9 +56,10 @@ def predict_next_word(model,tokenizer,input_text,k,direction):
     else:
         pos_logits = probs[tokenizer.encode('formal')]
         neg_logits = probs[tokenizer.encode('informal')]
+
     emo_logits = torch.concat([pos_logits, neg_logits])
     softmax_emo_logits = softmax(emo_logits)
-
+    #
     pos_prob = softmax_emo_logits[0]
     neg_prob = softmax_emo_logits[1]
     if direction=='0-1':
