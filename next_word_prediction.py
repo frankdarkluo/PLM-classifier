@@ -6,14 +6,36 @@ import numpy as np
 from utils import softmax
 
 topk=1000
-tokenizer = GPT2Tokenizer.from_pretrained("EleutherAI/gpt-neo-1.3B")
-model =GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-1.3B").cuda()
-tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+model_name="EleutherAI/gpt-neo-1.3B"
+
+tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+model =GPTNeoForCausalLM.from_pretrained(model_name).cuda()
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+# tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 #model =GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-2.7B").cuda()
 # model=GPTJForCausalLM.from_pretrained("EleutherAI/gpt-j-6B",revision = "float16",
 #                                       torch_dtype = torch.float16,low_cpu_mem_usage = True).cuda()
+prefix="""
+Sentence: This movie is very nice.
+Sentiment: {positive}
 
-seq = ' the sentiment of the text { ever since joes has changed hands it is just gotten worse and worse . } is'
+#####
+
+Sentence: I hated this movie, it sucks.
+Sentiment: {negative}
+
+#####
+
+Sentence: This movie was actually pretty funny.
+Sentiment: {positive}
+
+#####
+
+"""
+line="ever since joes has changed hands it is just gotten worse and worse ."
+input="Sentence: "+str(line)+"\n"
+postfix = "Sentiment: {"
+seq=prefix+input+postfix
 
 indexed_tokens = tokenizer.encode(seq)
 # Convert indexed tokens in a PyTorch tensor

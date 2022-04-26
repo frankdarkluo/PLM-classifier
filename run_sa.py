@@ -14,6 +14,7 @@ tzone = tz.gettz('America/Edmonton')
 warnings.filterwarnings('ignore')
 import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+os.environ['CUDA_VISIBLE_DEVICES']='1'
 
 def main():
     args = get_args()

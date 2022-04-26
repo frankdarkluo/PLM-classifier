@@ -38,7 +38,7 @@ with open(args.outfile,'r',encoding='utf8') as f:
     for idx,line in enumerate(datas):
         if idx< 500:
 
-            res=classifier(line.strip())
+            res=pipeline_classifier(line.strip())
             if res[0]['label'].lower()=='negative':
                 #print(line.strip())
                 pos+=1

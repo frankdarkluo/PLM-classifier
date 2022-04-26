@@ -15,8 +15,8 @@ def get_args():
     parser.add_argument('--seed', type=int, default=42, help='Seed for random number generator')
     parser.add_argument('--max_key', default=10, type=float)
     parser.add_argument('--max_key_rate', default=0.5, type=float)
-    parser.add_argument('--style_mode', default='pipeline', type=str,help='plm | pipeline | textcnn')
-    parser.add_argument('--class_name',default='EleutherAI/gpt-neo-2.7B',type=str)
+    parser.add_argument('--style_mode', default='plm', type=str,help='plm | pipeline | textcnn')
+    parser.add_argument('--class_name',default='EleutherAI/gpt-neo-1.3B',type=str)
     parser.add_argument('--topk', default=50, type=int,help="top-k words in masked out word prediction")
     parser.add_argument("--direction", type=str, default='1-0',help='0-1 | 1-0')
     parser.add_argument("--fluency_weight", type=int, default=1, help='fluency')
@@ -28,6 +28,7 @@ def get_args():
     parser.add_argument("--C", type=float, default=3e-4)
     parser.add_argument("--max_steps", type=int, default=15)
     parser.add_argument('--task', default='sentiment', type=str,help='sentiment | formality')
+    parser.add_argument("--setting", type=str, default='few-shot')
 
     ## Ablation Study:
     parser.add_argument("--semantic_mode", default='kw-sent',type=str,help='kw | sent | kw-sent')

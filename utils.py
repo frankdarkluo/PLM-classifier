@@ -12,6 +12,16 @@ negative_word_lst=['negative','bad','worse','depressed']
 formal_word_lst=['formal']
 informal_word_lst=['informal']
 
+prefix="Sentence: this movie is very nice.\n"\
+"Sentiment: {positive}\n" \
+"<|endoftext|>\n\n" \
+"Sentence: i hated this movie, it sucks.\n" \
+"Sentiment: {negative}\n" \
+"<|endoftext|>\n\n" \
+"Sentence: this movie was actually pretty funny.\n" \
+"Sentiment: {positive}\n" \
+"<|endoftext|>\n\n" \
+
 def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
@@ -32,7 +42,7 @@ def softmax(x):
 
     # 0.6-> 6 -> 36
     # 0.4-> 4 -> 16
-def predict_next_word(model,tokenizer,input_text,k,direction):
+def predict_next_word(model,tokenizer,input_text,direction):
     indexed_tokens = tokenizer.encode(input_text)
     # Convert indexed tokens in a PyTorch tensor
     tokens_tensor = torch.tensor([indexed_tokens])
@@ -57,17 +67,19 @@ def predict_next_word(model,tokenizer,input_text,k,direction):
         pos_logits = probs[tokenizer.encode('formal')]
         neg_logits = probs[tokenizer.encode('informal')]
 
-    emo_logits = torch.concat([pos_logits, neg_logits])
+    emo_logits = torch.concat([neg_logits, pos_logits])
     softmax_emo_logits = softmax(emo_logits)
     #
-    pos_prob = softmax_emo_logits[0]
-    neg_prob = softmax_emo_logits[1]
+    pos_prob = softmax_emo_logits[1]
+    neg_prob = softmax_emo_logits[0]
     if direction=='0-1':
-        output_prob =  pos_prob / neg_prob  # make the prob more robust
+        output_prob = pos_prob / neg_prob  # make the prob more robust
     else: #1-0
         output_prob=  neg_prob / pos_prob
 
-    return output_prob
+    label = 'negative' if torch.argmax(softmax_emo_logits) == 0 else 'positive'
+
+    return output_prob, label
 
 #huggingface classifier
 def pipe(res_cand,direction):

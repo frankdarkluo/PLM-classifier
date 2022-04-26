@@ -3,7 +3,7 @@ import numpy as np
 import math
 import torch.nn as nn
 from transformers import pipeline,RobertaTokenizer, RobertaForMaskedLM,GPTNeoForCausalLM,GPT2Tokenizer,\
-    GPT2LMHeadModel,GPTJForCausalLM,RobertaForSequenceClassification
+    GPT2LMHeadModel,GPTJForCausalLM,AutoTokenizer
 from utils import predict_next_word,pipe,pytorch_cos_sim,softmax
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BLEU_WEIGHTS_MEAN = [
@@ -13,6 +13,7 @@ BLEU_WEIGHTS_MEAN = [
     [0.25, 0.25, 0.25, 0.25],
 ]
 from nltk.translate.bleu_score import corpus_bleu
+from constant import prefix, postfix
 # model_name='distilbert-base-uncased-finetuned-sst-2-english'
 # sst2_classifier = pipeline("sentiment-analysis",model=model_name)
 
@@ -32,19 +33,20 @@ class SimulatedAnnealing(nn.Module):
 
         if self.opt.style_mode=='plm':
             if 'gpt-neo' in self.opt.class_name:
-                self.plm = GPTNeoForCausalLM.from_pretrained(self.opt.class_name)
+                self.plm = GPTNeoForCausalLM.from_pretrained(
+                    self.opt.class_name,revision="float16", low_cpu_mem_usage=True)
             elif 'gpt-j' in self.opt.class_name:
-                self.plm = GPTJForCausalLM.from_pretrained(self.opt.class_name)
+                self.plm = GPTJForCausalLM.from_pretrained(
+                    self.opt.class_name,revision="float16", low_cpu_mem_usage=True)
             self.plm.eval()
             self.plm.to(device)
-            self.plm.parallelize()
-        self.tokenizer = GPT2Tokenizer.from_pretrained(self.opt.class_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.opt.class_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.max_len = self.opt.max_len
         self.model=GPT2LMHeadModel.from_pretrained('gpt2').to(device)
         self.ppl_max_len=self.model.config.n_positions
-        self.sty_tokenizer=RobertaTokenizer.from_pretrained("siebert/sentiment-roberta-large-english")
-        self.sty_model=RobertaForSequenceClassification.from_pretrained("siebert/sentiment-roberta-large-english").to(device)
+        # self.sty_tokenizer=RobertaTokenizer.from_pretrained("siebert/sentiment-roberta-large-english")
+        # self.sty_model=RobertaForSequenceClassification.from_pretrained("siebert/sentiment-roberta-large-english").to(device)
 
     def pipeline_classifier(self,text):
         inputs = self.sty_tokenizer(text, return_tensors="pt").to(device)
@@ -59,23 +61,17 @@ class SimulatedAnnealing(nn.Module):
         return [outputs]
 
     def style_scorer(self,ref_news):
-
-        prefix = 'the sentiment of the text { '
-        postfix = ' } is '
         prob_new_probs=[]
         for idx, sent in enumerate(ref_news):
             text=ref_news[idx]
+            text = "Sentence: " + text + "\n"
             if self.opt.style_mode == 'plm':
                 # TODO: Define the prompt and the PLM classification score!
                 input_candidate_text = prefix + text + postfix
-                style_prob = predict_next_word(self.plm, self.tokenizer, input_candidate_text,
-                                                                k=len(self.tokenizer), direction=self.opt.direction)
-                if self.opt.early_stop==True:
-                    #res_cand = sst2_classifier(text)
-                    res_cand=self.pipeline_classifier(text)
-                    style_label=res_cand[0]['label'].lower()
-                else:
-                    style_label=None
+                style_prob, style_label = predict_next_word(self.plm, self.tokenizer, input_candidate_text,
+                                                                direction=self.opt.direction)
+                if self.opt.early_stop!=True:
+                    style_label = None
                 prob_new_probs.append(math.pow(style_prob, self.style_weight))
 
             elif self.opt.style_mode == 'pipeline':

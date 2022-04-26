@@ -1,4 +1,4 @@
-from transformers import RobertaTokenizer, RobertaForMaskedLM, pipeline
+from transformers import RobertaTokenizer, RobertaForMaskedLM, pipeline, AlbertTokenizer, AlbertModel
 import torch
 import torch.nn as nn
 import numpy as np
@@ -7,23 +7,21 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 import nltk
 from string import punctuation
 # nltk.download('averaged_perceptron_tagger')
-
-stopwords='!"#$%&\'()*+,-–./:;<=>?@[\\]^_`{|}~•…�'+'0123456789'#+'bcdefghjklmnopqrstvwxyz'
-# stopwords=set([punc for punc in stopwords]+['<s>']+['</s>'])
-# for w in ['!', ',', '.', '?', '-s', '-ly', 's', ')', '...', ':', ',"', '."', ';', '-', ').', '"', '),', '…','"),', '").',
-#           '–', '(', '.)', '!)', ".'", ']', '..', '--', '",', '!"', '".', '[', '!!', '&', '….', ')"', '…"', ')."', '].',
-#           '),"', "'", '!!!', ':)', '', '.",', '!).', '--', '..."', '....', '—', '/', '.]', '—', ",'", '")', '.""', '.")',
-#           ":-",'�',"()",'):', '],', "=","----"]:
-#     stopwords.add(w)
+from constant import stopwords
 
 class RobertaEditor(nn.Module):
     def __init__(self, opt):
         super(RobertaEditor, self).__init__()
         self.opt = opt
-        self.model_dir = opt.model_name_or_path
         self.topk = opt.topk
+        self.model_dir='roberta-large'
         self.model = RobertaForMaskedLM.from_pretrained(self.model_dir, return_dict=True).to(device)
         self.tokenizer = RobertaTokenizer.from_pretrained(self.model_dir)
+        # self.model_dir = "albert-xxlarge-v2"
+        # self.tokenizer = AlbertTokenizer.from_pretrained(self.model_dir)
+        # self.model = AlbertModel.from_pretrained("albert-xxlarge-v2")
+        print("running the model {}".format(self.model_dir))
+
         self.ops_map = [self.insert, self.replace, self.delete]
         #self.unmasker = pipeline("fill-mask", model=self.model_dir,framework="pt",device=torch.cuda.current_device())
         self.max_len = opt.max_len
@@ -49,7 +47,7 @@ class RobertaEditor(nn.Module):
 
         for input_text in input_texts:
             #input_seq = torch.tensor(self.tokenizer.encode(input_text, return_tensors='pt')).cuda()
-            rbt_tokens, _ = self.plm_token(input_texts)
+            rbt_tokens, _ , abt_tokens = self.plm_token(input_texts)
             input_seq=torch.tensor([self.tokenizer.convert_tokens_to_ids(rbt_token) for rbt_token in rbt_tokens]).cuda()
             mask_token_index = torch.where(input_seq == self.tokenizer.mask_token_id)[1]
             token_logits = self.model(input_seq).logits
@@ -82,8 +80,10 @@ class RobertaEditor(nn.Module):
     def plm_token(self,lines):
         rbt_lines=[]
         gpt_lines=[]
+        albert_lines=[]
         for line in lines:
             plm_line = []
+            abt_line = []
             line=line.split()
             for idx, token in enumerate(line):
                 if idx==0:
@@ -92,14 +92,18 @@ class RobertaEditor(nn.Module):
                     if token in ["'s","'d","'m","'re","'ll","<mask>"]:
                         plm_line.append(token)
                     else:
+                        abt_token = '▁'+token
                         token = 'Ġ' + token
                         plm_line.append(token)
+                        abt_line.append(abt_token)
             plm_line=plm_line[:self.max_len]
             rbt_line=['<s>']+plm_line+['</s>']
+            albert_line=['[CLS]']+abt_line+['[SEP]']
             rbt_lines.append(rbt_line)
             gpt_lines.append(plm_line)
+            albert_lines.append(albert_line)
 
-        return rbt_lines,gpt_lines
+        return rbt_lines,gpt_lines,albert_lines
 
     def state_vec(self, inputs):
         sta_vec_list = []
