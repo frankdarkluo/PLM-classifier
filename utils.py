@@ -77,7 +77,11 @@ def predict_next_word(model,tokenizer,input_text,direction):
     else: #1-0
         output_prob=  neg_prob / pos_prob
 
-    label = 'negative' if torch.argmax(softmax_emo_logits) == 0 else 'positive'
+    if torch.argmax(softmax_emo_logits) == 0 and neg_prob>=0.6:
+        label='negative'
+    elif torch.argmax(softmax_emo_logits) == 1 and pos_prob>=0.6:
+        label = 'positive'
+    else: label = 'neutral'
 
     return output_prob, label
 

@@ -31,7 +31,7 @@ def main():
     else: postfix = '1'
 
     if args.task=='sentiment':
-        with open('data/yelp/test_50.'+postfix, 'r', encoding='utf8') as f:
+        with open('data/yelp/test.'+postfix, 'r', encoding='utf8') as f:
             data = f.readlines()
     else:
         with open('data/GYAFC/test_50.'+postfix, 'r', encoding='utf8') as f:
@@ -128,27 +128,27 @@ def main():
                                         ref_new_score.item(), old_style_score.item(), new_style_score.item()))
                     ref_olds = [ref_hat]
 
-                if args.early_stop==True:
-                    if args.direction=='0-1' and new_style_label=='positive':
-                        print("Early Stopping!")
-                        logging.info("Early Stopping!")
-                        print("A is {}, T is {}:\t{} total score:{} {} style_score {} {}"
-                              .format(accept_prob, T, ref_hat, ref_old_score.item(),
-                                      ref_new_score.item(), old_style_score.item(), new_style_score.item()))
-                        logging.info("A is {}, T is {}:\t{}\t total score:{} {}\t style_score {} {}"
-                                     .format(accept_prob, T, ref_hat, ref_old_score.item(),
-                                             ref_new_score.item(), old_style_score.item(), new_style_score.item()))
-                        break
-                    elif args.direction=='1-0' and new_style_label=='negative':
-                        print("Early Stopping!")
-                        logging.info("Early Stopping")
-                        print("A is {}, T is {}:\t{} total score:{} {} style_score {} {}"
-                              .format(accept_prob, T, ref_hat, ref_old_score.item(),
-                                      ref_new_score.item(), old_style_score.item(), new_style_score.item()))
-                        logging.info("A is {}, T is {}:\t{}\t total score:{} {}\t style_score {} {}"
-                                     .format(accept_prob, T, ref_hat, ref_old_score.item(),
-                                             ref_new_score.item(), old_style_score.item(), new_style_score.item()))
-                        break
+                    if args.early_stop==True:
+                        if args.direction=='0-1' and new_style_label=='positive':
+                            print("Early Stopping!")
+                            logging.info("Early Stopping!")
+                            print("A is {}, T is {}:\t{} total score:{} {} style_score {} {}"
+                                  .format(accept_prob, T, ref_hat, ref_old_score.item(),
+                                          ref_new_score.item(), old_style_score.item(), new_style_score.item()))
+                            logging.info("A is {}, T is {}:\t{}\t total score:{} {}\t style_score {} {}"
+                                         .format(accept_prob, T, ref_hat, ref_old_score.item(),
+                                                 ref_new_score.item(), old_style_score.item(), new_style_score.item()))
+                            break
+                        elif args.direction=='1-0' and new_style_label=='negative':
+                            print("Early Stopping!")
+                            logging.info("Early Stopping")
+                            print("A is {}, T is {}:\t{} total score:{} {} style_score {} {}"
+                                  .format(accept_prob, T, ref_hat, ref_old_score.item(),
+                                          ref_new_score.item(), old_style_score.item(), new_style_score.item()))
+                            logging.info("A is {}, T is {}:\t{}\t total score:{} {}\t style_score {} {}"
+                                         .format(accept_prob, T, ref_hat, ref_old_score.item(),
+                                                 ref_new_score.item(), old_style_score.item(), new_style_score.item()))
+                            break
 
             logging.info('\n')
             # return ref_hat
