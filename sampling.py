@@ -2,9 +2,8 @@ import torch
 import numpy as np
 import math
 import torch.nn as nn
-from transformers import pipeline,RobertaTokenizer, RobertaForMaskedLM,GPTNeoForCausalLM,GPT2Tokenizer,\
-    GPT2LMHeadModel,GPTJForCausalLM,AutoTokenizer
-from utils import predict_next_word,pipe,pytorch_cos_sim,softmax
+from transformers import GPTNeoForCausalLM, GPT2LMHeadModel,GPTJForCausalLM,AutoTokenizer
+from utils.functions import predict_next_word,pipe,pytorch_cos_sim,softmax
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BLEU_WEIGHTS_MEAN = [
     [1.0],
@@ -13,7 +12,7 @@ BLEU_WEIGHTS_MEAN = [
     [0.25, 0.25, 0.25, 0.25],
 ]
 from nltk.translate.bleu_score import corpus_bleu
-from constant import prefix, postfix
+from utils.constant import prefix, postfix
 # model_name='distilbert-base-uncased-finetuned-sst-2-english'
 # sst2_classifier = pipeline("sentiment-analysis",model=model_name)
 

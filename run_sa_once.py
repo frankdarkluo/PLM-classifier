@@ -7,7 +7,7 @@ from args import get_args
 import numpy as np
 
 import warnings
-from utils import set_seed
+from utils.functions import set_seed
 import datetime
 from dateutil import tz
 tzone = tz.gettz('America/Edmonton')

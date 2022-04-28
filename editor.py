@@ -1,13 +1,12 @@
-from transformers import RobertaTokenizer, RobertaForMaskedLM, pipeline, AlbertTokenizer, AlbertModel
+from transformers import RobertaTokenizer, RobertaForMaskedLM
 import torch
 import torch.nn as nn
 import numpy as np
 import RAKE
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 import nltk
-from string import punctuation
 # nltk.download('averaged_perceptron_tagger')
-from constant import stopwords
+from utils.constant import stopwords
 
 class RobertaEditor(nn.Module):
     def __init__(self, opt):
@@ -52,7 +51,12 @@ class RobertaEditor(nn.Module):
             mask_token_index = torch.where(input_seq == self.tokenizer.mask_token_id)[1]
             token_logits = self.model(input_seq).logits
             masked_token_logits = token_logits[0, mask_token_index, :]
-            mask_words_list = list(set(self.tokenizer.decode([token.item()]).lower().strip() for token in torch.topk(masked_token_logits, self.topk, dim=1).indices[0]))
+            try:
+                mask_words_list = list(set(self.tokenizer.decode([token.item()]).lower().strip() for token in torch.topk(masked_token_logits, self.topk, dim=1).indices[0]))
+            except IndexError:
+                print("input text is {}".format(input_text))
+                mask_words_list = list(set(self.tokenizer.decode([token.item()]).lower().strip() for token in
+                                           torch.topk(masked_token_logits, 100, dim=1).indices[0]))
             # delete the punctuations
             mask_words=[]
             for token in mask_words_list:

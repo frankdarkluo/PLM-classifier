@@ -7,7 +7,7 @@ from args import get_args
 import numpy as np
 
 import warnings
-from utils import set_seed
+from utils.functions import set_seed
 import datetime
 from dateutil import tz
 tzone = tz.gettz('America/Edmonton')
@@ -33,9 +33,13 @@ def main():
     if args.task=='sentiment':
         with open('data/yelp/test.'+postfix, 'r', encoding='utf8') as f:
             data = f.readlines()
+        pos_label='positive'
+        neg_label='negative'
     else:
-        with open('data/GYAFC/test_50.'+postfix, 'r', encoding='utf8') as f:
+        with open('data/GYAFC/test.'+postfix, 'r', encoding='utf8') as f:
             data = f.readlines()
+        pos_label = 'formal'
+        neg_label = 'informal'
 
     batch_size = 1
     num_batches = math.ceil(len(data) / float(batch_size))
@@ -129,7 +133,7 @@ def main():
                     ref_olds = [ref_hat]
 
                     if args.early_stop==True:
-                        if args.direction=='0-1' and new_style_label=='positive':
+                        if args.direction=='0-1' and new_style_label==pos_label:
                             print("Early Stopping!")
                             logging.info("Early Stopping!")
                             print("A is {}, T is {}:\t{} total score:{} {} style_score {} {}"
@@ -139,7 +143,7 @@ def main():
                                          .format(accept_prob, T, ref_hat, ref_old_score.item(),
                                                  ref_new_score.item(), old_style_score.item(), new_style_score.item()))
                             break
-                        elif args.direction=='1-0' and new_style_label=='negative':
+                        elif args.direction=='1-0' and new_style_label==neg_label:
                             print("Early Stopping!")
                             logging.info("Early Stopping")
                             print("A is {}, T is {}:\t{} total score:{} {} style_score {} {}"
