@@ -71,7 +71,7 @@ def main():
                 temp = input.strip().lower()
                 for k, v in word_pairs.items():
                     temp = temp.replace(k, v)
-                line = temp
+                line = ' '.join(temp.split()[:args.max_len])
                 ref_olds.append(line)
             #state_vec=None # ablation study
 

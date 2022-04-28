@@ -43,20 +43,16 @@ class RobertaEditor(nn.Module):
 
         sent_list = []
         #mask_words = [output['token_str'].strip() for output in self.unmasker(input_texts, top_k=self.topk)]
-
         for input_text in input_texts:
             #input_seq = torch.tensor(self.tokenizer.encode(input_text, return_tensors='pt')).cuda()
+
             rbt_tokens, _ , abt_tokens = self.plm_token(input_texts)
             input_seq=torch.tensor([self.tokenizer.convert_tokens_to_ids(rbt_token) for rbt_token in rbt_tokens]).cuda()
             mask_token_index = torch.where(input_seq == self.tokenizer.mask_token_id)[1]
             token_logits = self.model(input_seq).logits
             masked_token_logits = token_logits[0, mask_token_index, :]
-            try:
-                mask_words_list = list(set(self.tokenizer.decode([token.item()]).lower().strip() for token in torch.topk(masked_token_logits, self.topk, dim=1).indices[0]))
-            except IndexError:
-                print("input text is {}".format(input_text))
-                mask_words_list = list(set(self.tokenizer.decode([token.item()]).lower().strip() for token in
-                                           torch.topk(masked_token_logits, 100, dim=1).indices[0]))
+            mask_words_list = list(set(self.tokenizer.decode([token.item()]).lower().strip() for token in torch.topk(masked_token_logits, self.topk, dim=1).indices[0]))
+
             # delete the punctuations
             mask_words=[]
             for token in mask_words_list:

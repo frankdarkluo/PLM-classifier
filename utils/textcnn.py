@@ -118,12 +118,12 @@ def main():
     train_loader = SCIterator(train_src, train_tgt, opt)
     valid_loader = SCIterator(valid_src, valid_tgt, opt)
 
-    if os.path.exists('../../PLM-classifier/checkpoints/embedding.pt'):
+    if os.path.exists('../checkpoints/embedding.pt'):
         embedding = torch.load('../checkpoints/embedding.pt')
     else:
-        embed_path = '../../PLM-classifier/checkpoints/glove.840B.300d.txt'
+        embed_path = '../checkpoints/glove.840B.300d.txt'
         embedding = load_embedding(tokenizer, 300, embed_path)
-        torch.save(embedding, '../../PLM-classifier/checkpoints/embedding.pt')
+        torch.save(embedding, '../checkpoints/embedding.pt')
 
     model = TextCNN(opt.embed_dim, len(tokenizer), filter_sizes,
                     num_filters, embedding=embedding, dropout=opt.dropout)

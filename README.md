@@ -25,7 +25,7 @@ CUDA_VISIBLE_DEVICES=1 python3 run_sa.py --style_weight 3 \
 --task formality \
 --class_name EleutherAI/gpt-neo-2.7B \
 --topk 50 \
---max_steps 15 \
+--max_steps 23 \
 --output_dir formality/ \
 --semantic_mode kw-sent \
 --keyword_weight 8 \
