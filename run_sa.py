@@ -52,7 +52,7 @@ def main():
                         filemode='w',
                         datefmt='%m/%d/%Y %H:%M:%S',
                         level=logging.INFO)
-    word_pairs ={"ca n't": "can not","n't":"not"}
+    word_pairs ={"ca n't": "can not","n't":"not", "wo n't": "will not"}
 
     logging.info(args)
 
