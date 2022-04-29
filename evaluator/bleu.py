@@ -1,6 +1,8 @@
 import os
 import sys
 from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
+from nltk import wordpunct_tokenize
+
 import argparse
 import csv
 BLEU_WEIGHTS_MEAN = [
@@ -15,9 +17,11 @@ def load_data(file):
     with open(file, 'r', encoding='utf8') as of:
         datas = of.readlines()#[:100]
         for idx, data in enumerate(datas):
-            strs.append(data.strip())
+            data=data.strip().lower()
+            strs.append(data)
 
-    str_list = [seq.strip().lower().split() for seq in strs]
+    #str_list = [seq.split() for seq in strs]
+    str_list = [wordpunct_tokenize(seq) for seq in strs]
 
     return str_list
 
@@ -25,19 +29,22 @@ def load_ref_data(ref_path,N=50):
     refs=[[]]*N
 
     for file in os.listdir(ref_path):
-        with open(ref_path+file,'r',encoding='windows-1252') as f:
+        with open(ref_path+file,'r',encoding='utf8') as f:
             lines=f.readlines()[:N]
             for j, line in enumerate(lines):
-                line = line.strip().lower().split()
+                line = line.strip().lower()
+                #line=line.split()
+                line=wordpunct_tokenize(line)
+
                 temp=refs[j].copy()
                 temp.append(line.copy())
                 refs[j]=temp.copy()
     return refs
 
 def metric(args):
-
     infer =load_data(args.gen_path)
-    golden=load_ref_data(args.ref_path,args.N)
+    ref_path='../data/{}/{}_ref/'.format(args.dataset,args.task)
+    golden=load_ref_data(ref_path,args.N)
 
     # eval bleu
     sf=SmoothingFunction()
@@ -53,8 +60,10 @@ def metric(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ref_path', default='data/yelp/pos2neg_ref/', type=str)
-    parser.add_argument('--gen_path', default='BLEU/pos2neg/generate_pos2neg.txt', type=str)
-    parser.add_argument("--N",default=50,type=int)
+    #parser.add_argument('--ref_path', default='data/gyafc/pos2neg_ref/', type=str)
+    parser.add_argument('--dataset',default='gyafc',type=str)
+    parser.add_argument('--task', default='neg2pos', type=str)
+    parser.add_argument('--gen_path', default='../data/gyafc/test.0', type=str)
+    parser.add_argument("--N",default=1332,type=int)
     args = parser.parse_args()
     metric(args)

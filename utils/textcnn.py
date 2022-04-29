@@ -83,7 +83,7 @@ class TextCNN(nn.Module):
 def main():
     parser = argparse.ArgumentParser('Style Classifier TextCNN')
     parser.add_argument('-lr', default=1e-3, type=float, help='learning rate')
-    parser.add_argument('-dataset', default='em', type=str, help='the name of dataset')
+    parser.add_argument('-dataset', default='gyafc', type=str, help='the name of dataset')
     parser.add_argument('-embed_dim', default=300, type=int, help='the embedding size')
     parser.add_argument('-seed', default=42, type=int, help='pseudo random number seed')
     parser.add_argument("-dropout", default=0.5, type=float, help="Keep prob in dropout.")
@@ -101,16 +101,16 @@ def main():
     #     tokenizer.add_tokens(token)
 
     train_src, train_tgt, valid_src, valid_tgt = [], [], [], []
-    with open('./data/{}/train.0'.format(opt.dataset),'r') as f:
+    with open('../data/{}/train.0'.format(opt.dataset),'r') as f:
         for line in f.readlines():
             train_src.append(tokenizer.encode(line.strip())[:opt.max_len])
-    with open('./data/{}/train.1'.format(opt.dataset),'r') as f:
+    with open('../data/{}/train.1'.format(opt.dataset),'r') as f:
         for line in f.readlines():
             train_tgt.append(tokenizer.encode(line.strip())[:opt.max_len])
-    with open('./data/{}/valid.0'.format(opt.dataset),'r') as f:
+    with open('../data/{}/valid.0'.format(opt.dataset),'r') as f:
         for line in f.readlines():
             valid_src.append(tokenizer.encode(line.strip())[:opt.max_len])
-    with open('./data/{}/valid.1'.format(opt.dataset),'r') as f:
+    with open('../data/{}/valid.1'.format(opt.dataset),'r') as f:
         for line in f.readlines():
             valid_tgt.append(tokenizer.encode(line.strip())[:opt.max_len])
     print('[Info] {} instances from train set'.format(len(train_src)))
@@ -121,8 +121,9 @@ def main():
     if os.path.exists('../checkpoints/embedding.pt'):
         embedding = torch.load('../checkpoints/embedding.pt')
     else:
-        embed_path = '../checkpoints/glove.840B.300d.txt'
+        embed_path = '../data/glove.840B.300d.txt'
         embedding = load_embedding(tokenizer, 300, embed_path)
+        print("embedding.pt saved")
         torch.save(embedding, '../checkpoints/embedding.pt')
 
     model = TextCNN(opt.embed_dim, len(tokenizer), filter_sizes,
@@ -168,7 +169,7 @@ def main():
                 print('[Info] Epoch {:02d}-{:05d}: | average acc {:.4f}% | '
                     'average loss {:.4f} | lr {:.6f} | second {:.2f}'.format(
                     e, optimizer.steps, total_acc / total_num * 100,
-                    np.mean(loss_list, lr, time.time() - start)))
+                    np.mean(loss_list), lr, time.time() - start))
                 start = time.time()
 
             if optimizer.steps % opt.eval_step == 0:

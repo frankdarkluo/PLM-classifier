@@ -32,12 +32,12 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 def main():
     parser = argparse.ArgumentParser('Evaluating Style Strength')
-    parser.add_argument('--gen_path', default='../data/GYAFC/test.0', type=str, help='src')
+    parser.add_argument('--gen_path', default='../data/gyafc/test.0', type=str, help='src')
     parser.add_argument('--direction', default='0-1', type=str, help='from 0 to 1')
 
     parser.add_argument('--max_len', default=30, type=int, help='max tokens in a batch')
     parser.add_argument('--embed_dim', default=300, type=int, help='the embedding size')
-    parser.add_argument('--dataset', default='fr', type=str, help='the name of dataset')
+    parser.add_argument('--dataset', default='gyafc', type=str, help='the name of dataset')
     parser.add_argument('--model', default='textcnn', type=str, help='the name of model')
     parser.add_argument('--seed', default=42, type=int, help='pseudo random number seed')
     parser.add_argument('--batch_size', default=1, type=int, help='max sents in a batch')

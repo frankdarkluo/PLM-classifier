@@ -1,7 +1,7 @@
 max_len=0
 total_len=0
 
-with open('./data/GYAFC/test.1') as of:
+with open('./data/GYAFC_500/test.1') as of:
     datas=of.readlines()
     for data in datas:
         data=data.strip().split()
