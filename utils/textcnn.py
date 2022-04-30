@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from torch import cuda
 import torch.nn.functional as F
-from transformers import BartTokenizer
+from transformers import RobertaTokenizer
 import numpy as np
 
 sys.path.append("")
@@ -82,21 +82,21 @@ class TextCNN(nn.Module):
 
 def main():
     parser = argparse.ArgumentParser('Style Classifier TextCNN')
-    parser.add_argument('-lr', default=1e-3, type=float, help='learning rate')
-    parser.add_argument('-dataset', default='gyafc', type=str, help='the name of dataset')
-    parser.add_argument('-embed_dim', default=300, type=int, help='the embedding size')
-    parser.add_argument('-seed', default=42, type=int, help='pseudo random number seed')
-    parser.add_argument("-dropout", default=0.5, type=float, help="Keep prob in dropout.")
-    parser.add_argument('-max_len', default=50, type=int, help='maximum tokens in a batch')
-    parser.add_argument('-log_step', default=100, type=int, help='print log every x steps')
-    parser.add_argument('-eval_step', default=1000, type=int, help='early stopping training')
-    parser.add_argument('-batch_size', default=32, type=int, help='maximum sents in a batch')
-    parser.add_argument('-epoch', default=50, type=int, help='force stop at specified epoch')
+    parser.add_argument('--lr', default=1e-3, type=float, help='learning rate')
+    parser.add_argument('--dataset', default='gyafc', type=str, help='the name of dataset')
+    parser.add_argument('--embed_dim', default=300, type=int, help='the embedding size')
+    parser.add_argument('--seed', default=42, type=int, help='pseudo random number seed')
+    parser.add_argument("--dropout", default=0.5, type=float, help="Keep prob in dropout.")
+    parser.add_argument('--max_len', default=50, type=int, help='maximum tokens in a batch')
+    parser.add_argument('--log_step', default=100, type=int, help='print log every x steps')
+    parser.add_argument('--eval_step', default=1000, type=int, help='early stopping training')
+    parser.add_argument('--batch_size', default=32, type=int, help='maximum sents in a batch')
+    parser.add_argument('--epoch', default=50, type=int, help='force stop at specified epoch')
 
     opt = parser.parse_args()
     torch.manual_seed(opt.seed)
 
-    tokenizer = BartTokenizer.from_pretrained('facebook/bart-large')
+    tokenizer = RobertaTokenizer.from_pretrained('roberta-large')
     # for token in ['<E>', '<F>']:
     #     tokenizer.add_tokens(token)
 
@@ -176,7 +176,7 @@ def main():
                 valid_acc, valid_loss = evaluate_sc(model, valid_loader, loss_fn, e)
                 if avg_acc < valid_acc:
                     avg_acc = valid_acc
-                    save_path = '../checkpoints/textcnn_{}.chkpt'.format(opt.dataset)
+                    save_path = '../checkpoints/textcnn_{}_roberta.chkpt'.format(opt.dataset)
                     torch.save(model.state_dict(), save_path)
                     print('[Info] The checkpoint file has been updated.')
                     tab = 0

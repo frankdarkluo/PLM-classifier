@@ -89,7 +89,7 @@ class RobertaEditor(nn.Module):
                 if idx==0:
                     plm_line.append(token)
                 else:
-                    if token in ["'s","'d","'m","'re","'ll","<mask>"]:
+                    if token in ["'s","'d","'m","'re","'ve","'ll","n't","<mask>"]:
                         plm_line.append(token)
                     else:
                         abt_token = '▁'+token

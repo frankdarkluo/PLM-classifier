@@ -1,6 +1,8 @@
 from transformers import pipeline,RobertaTokenizer,RobertaForSequenceClassification
 import torch
 import math
+import sys
+sys.path.append("")
 import argparse
 from utils.functions import softmax
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -16,7 +18,7 @@ pos=0
 neg=0
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--outfile', default='results/try1/2022-03-27_03:18:22_pipeline_3_1-0.txt', type=str)
+parser.add_argument('--gen_path', default='results/try1/2022-03-27_03:18:22_pipeline_3_1-0.txt', type=str)
 args=parser.parse_args()
 
 def classifier(text):
@@ -32,7 +34,7 @@ def classifier(text):
     return [outputs]
 
 
-with open(args.outfile,'r',encoding='utf8') as f:
+with open(args.gen_path,'r',encoding='utf8') as f:
     datas=f.readlines()
 
     for idx,line in enumerate(datas):

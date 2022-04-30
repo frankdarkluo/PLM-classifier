@@ -11,7 +11,7 @@ def get_args():
 
     # parser.add_argument('--model_name_or_path', type=str, default="roberta-large",help='model_name_or_path.')
     # parser.add_argument('--tokenizer_name_or_path', type=str, default="roberta-large",help='tokenizer_name_or_path.')
-    parser.add_argument('--max_len', type=int, default=16,help='Input length of model')
+    parser.add_argument('--max_len', type=int, default=32,help='Input length of model')
     parser.add_argument('--seed', type=int, default=42, help='Seed for random number generator')
     parser.add_argument('--max_key', default=10, type=float)
     parser.add_argument('--max_key_rate', default=0.5, type=float)

@@ -35,7 +35,7 @@ def main():
         pos_label='positive'
         neg_label='negative'
     else:
-        with open('data/GYAFC/test.'+postfix, 'r', encoding='utf8') as f:
+        with open('data/gyafc/test.'+postfix, 'r', encoding='utf8') as f:
             data = f.readlines()
         pos_label = 'formal'
         neg_label = 'informal'

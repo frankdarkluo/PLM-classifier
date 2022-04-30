@@ -44,4 +44,4 @@ elif opt.task=='formality':
 
     """
     postfix="Formality: {"
-    stopwords = '#$%|~…�'
+    stopwords = '#$%&()*+,-–./:;<=>@[\\]^_`{|}~•…�'+'0123456789'

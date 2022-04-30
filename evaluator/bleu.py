@@ -43,7 +43,7 @@ def load_ref_data(ref_path,N=50):
 
 def metric(args):
     infer =load_data(args.gen_path)
-    ref_path='../data/{}/{}_ref/'.format(args.dataset,args.task)
+    ref_path='data/{}/{}_ref/'.format(args.dataset,args.task)
     golden=load_ref_data(ref_path,args.N)
 
     # eval bleu
@@ -64,6 +64,6 @@ if __name__ == '__main__':
     parser.add_argument('--dataset',default='gyafc',type=str)
     parser.add_argument('--task', default='neg2pos', type=str)
     parser.add_argument('--gen_path', default='../data/gyafc/test.0', type=str)
-    parser.add_argument("--N",default=1332,type=int)
+    parser.add_argument("--N",default=100,type=int)
     args = parser.parse_args()
     metric(args)

@@ -33,7 +33,7 @@ def main():
         with open('data/yelp/test_50.'+postfix, 'r', encoding='utf8') as f:
             data = f.readlines()
     else:
-        with open('data/GYAFC/test_50.'+postfix, 'r', encoding='utf8') as f:
+        with open('data/gyafc/test_50.'+postfix, 'r', encoding='utf8') as f:
             data = f.readlines()
 
     batch_size = 1
