@@ -2,7 +2,7 @@ import random
 import numpy as np
 import torch
 from nltk.corpus import stopwords
-from args import get_args
+from model_args import get_args
 args=get_args()
 stopwords.words('english')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

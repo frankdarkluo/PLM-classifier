@@ -18,7 +18,7 @@ pos=0
 neg=0
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--gen_path', default='results/try1/2022-03-27_03:18:22_pipeline_3_1-0.txt', type=str)
+parser.add_argument('--gen_path', default='../output.txt', type=str)
 args=parser.parse_args()
 
 def classifier(text):

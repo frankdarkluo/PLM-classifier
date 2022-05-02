@@ -20,8 +20,8 @@ def load_data(file):
             data=data.strip().lower()
             strs.append(data)
 
-    #str_list = [seq.split() for seq in strs]
-    str_list = [wordpunct_tokenize(seq) for seq in strs]
+    str_list = [seq.split() for seq in strs]
+    #str_list = [wordpunct_tokenize(seq) for seq in strs]
 
     return str_list
 
@@ -33,8 +33,8 @@ def load_ref_data(ref_path,N=50):
             lines=f.readlines()[:N]
             for j, line in enumerate(lines):
                 line = line.strip().lower()
-                #line=line.split()
-                line=wordpunct_tokenize(line)
+                line=line.split()
+                #line=wordpunct_tokenize(line)
 
                 temp=refs[j].copy()
                 temp.append(line.copy())
@@ -43,7 +43,7 @@ def load_ref_data(ref_path,N=50):
 
 def metric(args):
     infer =load_data(args.gen_path)
-    ref_path='data/{}/{}_ref/'.format(args.dataset,args.task)
+    ref_path='../data/{}/{}_ref/'.format(args.dataset,args.task)
     golden=load_ref_data(ref_path,args.N)
 
     # eval bleu
@@ -64,6 +64,6 @@ if __name__ == '__main__':
     parser.add_argument('--dataset',default='gyafc',type=str)
     parser.add_argument('--task', default='neg2pos', type=str)
     parser.add_argument('--gen_path', default='../data/gyafc/test.0', type=str)
-    parser.add_argument("--N",default=100,type=int)
+    parser.add_argument("--N",default=500,type=int)
     args = parser.parse_args()
     metric(args)

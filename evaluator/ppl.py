@@ -15,7 +15,7 @@ tokenizer = GPT2Tokenizer.from_pretrained(model_id)
 
 import torch
 from editor import RobertaEditor
-from args import get_args
+from model_args import get_args
 max_length = model.config.n_positions
 stride = 1024
 

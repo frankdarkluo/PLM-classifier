@@ -1,4 +1,4 @@
-from args import get_args
+from model_args import get_args
 opt=get_args()
 if opt.task=='sentiment':
     prefix="""
@@ -44,4 +44,5 @@ elif opt.task=='formality':
 
     """
     postfix="Formality: {"
-    stopwords = '#$%&()*+,-–./:;<=>@[\\]^_`{|}~•…�'+'0123456789'
+    #stopwords = '#$%&()*+,-–./:;<=>@[\\]^_`{|}~•…�'+'0123456789'
+    stopwords = '#$%|~…�'

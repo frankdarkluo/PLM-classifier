@@ -35,4 +35,5 @@ CUDA_VISIBLE_DEVICES=1 python3 run_sa.py --style_weight 8 \
 --action all \
 --early_stop True
 
-perl multi-bleu.perl ../data/gyafc/pos2neg_ref/ref0.1 ../data/gyafc/pos2neg_ref/ref1.1 ../data/gyafc/pos2neg_ref/ref2.1 ../data/gyafc/pos2neg_ref/ref3.1 < ../data/gyafc/test.1
+perl multi-bleu.perl ../data/GYAFC_500/pos2neg_ref/ref0.0 ../data/GYAFC_500/pos2neg_ref/ref1.0 ../data/GYAFC_500/pos2neg_ref/ref2.0 ../data/GYAFC_500/pos2neg_ref/ref3.0 < /output/gpt3-davinci-001_1-0.txt
+perl multi-bleu.perl ../data/GYAFC_500/neg2pos_ref/ref0.1 ../data/GYAFC_500/neg2pos_ref/ref1.1 ../data/GYAFC_500/neg2pos_ref/ref2.1 ../data/GYAFC_500/neg2pos_ref/ref3.1 < /output/gpt3-davinci-001_0-1.txt

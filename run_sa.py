@@ -3,7 +3,7 @@ import os
 import logging
 from sampling import SimulatedAnnealing
 from editor import RobertaEditor
-from args import get_args
+from model_args import get_args
 import numpy as np
 
 import warnings

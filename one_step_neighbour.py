@@ -3,7 +3,7 @@ import os
 import logging
 from sampling import SimulatedAnnealing
 from editor import RobertaEditor
-from args import get_args
+from model_args import get_args
 import numpy as np
 
 import warnings
@@ -33,7 +33,7 @@ def main():
         with open('data/yelp/test.'+postfix, 'r', encoding='utf8') as f:
             data = f.readlines()
     else:
-        with open('data/GYAFC/test_50.'+postfix, 'r', encoding='utf8') as f:
+        with open('data/gyafc/test.'+postfix, 'r', encoding='utf8') as f:
             data = f.readlines()
 
     batch_size = 1
@@ -51,7 +51,7 @@ def main():
                         filemode='w',
                         datefmt='%m/%d/%Y %H:%M:%S',
                         level=logging.INFO)
-    word_pairs ={"ca n't": "can not","n't":"not"}
+    word_pairs ={"ca n't": "can not","n't":"not", "wo n't": "will not"}
 
     logging.info(args)
 
@@ -79,6 +79,7 @@ def main():
             cand_sent_list = []
             state_vec, pos_list = editor.state_vec(ref_olds)
             flag = 0
+            step = 0
             for ops in [0,1,2]:
                 seq_len = len(ref_oris[0].split())
                 ops = np.array([ops])
@@ -95,27 +96,28 @@ def main():
 
                     total_score_list.append(new_style_score)
                     cand_sent_list.append(ref_hat)
+                    step+=1
 
                     if args.early_stop == True:
                         if args.direction == '0-1' and new_style_label == 'positive':
                             print("Early Stopping!")
                             logging.info("Early Stopping!")
-                            print("{} \ttotal score:{} {} style_score {} {}"
-                                  .format(ref_hat, ref_old_score.item(),
+                            print("{} steps {} \ttotal score:{} {} style_score {} {}"
+                                  .format(step,ref_hat, ref_old_score.item(),
                                           ref_new_score.item(), old_style_score.item(), new_style_score.item()))
-                            logging.info("{}\t total score:{} {}\t style_score {} {}"
-                                         .format(ref_hat, ref_old_score.item(),
+                            logging.info("{} steps {}\t total score:{} {}\t style_score {} {}"
+                                         .format(step,ref_hat, ref_old_score.item(),
                                                  ref_new_score.item(), old_style_score.item(), new_style_score.item()))
                             flag=1
                             break
                         elif args.direction == '1-0' and new_style_label == 'negative':
                             print("Early Stopping!")
                             logging.info("Early Stopping!")
-                            print("{}\t total score:{} {} style_score {} {}"
-                                  .format(ref_hat, ref_old_score.item(),
+                            print("{} steps {}\t total score:{} {} style_score {} {}"
+                                  .format(step,ref_hat, ref_old_score.item(),
                                           ref_new_score.item(), old_style_score.item(), new_style_score.item()))
-                            logging.info("{}\t total score:{} {}\t style_score {} {}"
-                                         .format(ref_hat, ref_old_score.item(),
+                            logging.info("{} steps {}\t total score:{} {}\t style_score {} {}"
+                                         .format(step,ref_hat, ref_old_score.item(),
                                                  ref_new_score.item(), old_style_score.item(), new_style_score.item()))
                             flag = 1
                             break

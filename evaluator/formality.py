@@ -4,7 +4,7 @@ import os
 import sys
 import argparse
 import numpy as np
-from args import get_args
+from model_args import get_args
 args=get_args()
 import torch
 import torch.nn as nn
@@ -36,7 +36,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 def main():
     parser = argparse.ArgumentParser('Evaluating Style Strength')
-    parser.add_argument('--gen_path', default='../output.txt', type=str, help='src')
+    parser.add_argument('--gen_path', default='../output/gpt3-davinci-001_0-1.txt', type=str, help='src')
     parser.add_argument('--direction', default='0-1', type=str, help='from 0 to 1')
 
     parser.add_argument('--max_len', default=30, type=int, help='max tokens in a batch')
