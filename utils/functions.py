@@ -68,15 +68,15 @@ def predict_next_word(model,tokenizer,input_text,direction):
         output_prob=  neg_prob / pos_prob
 
     if args.task == 'sentiment':
-        if torch.argmax(softmax_emo_logits) == 0 and neg_prob>=0.6:
+        if torch.argmax(softmax_emo_logits) == 0 and neg_prob>=0.65:
             label='negative'
-        elif torch.argmax(softmax_emo_logits) == 1 and pos_prob>=0.6:
+        elif torch.argmax(softmax_emo_logits) == 1 and pos_prob>=0.65:
             label = 'positive'
         else: label = 'neutral'
     elif args.task == 'formality':
-        if torch.argmax(softmax_emo_logits) == 0 and neg_prob>=0.6:
+        if torch.argmax(softmax_emo_logits) == 0 and neg_prob>=0.65:
             label='informal'
-        elif torch.argmax(softmax_emo_logits) == 1 and pos_prob>=0.6:
+        elif torch.argmax(softmax_emo_logits) == 1 and pos_prob>=0.65:
             label = 'formal'
         else: label = 'neutral'
 

@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/python
 
 import os
 import sys
 import argparse
-import numpy as np
-from model_args import get_args
-args=get_args()
+sys.path.append("")
+import model_args
+args=model_args.get_args()
 import torch
-import torch.nn as nn
 from torch import cuda
-import torch.nn.functional as F
 from transformers import GPT2Tokenizer,BartTokenizer,RobertaTokenizer
 
-sys.path.append("")
 from utils.dataset import SCIterator
 from utils.textcnn import TextCNN
 from editor import RobertaEditor
@@ -28,16 +26,10 @@ special_tokens = [{'bos_token': '<bos>'},
 tokenizer = RobertaTokenizer.from_pretrained('roberta-large')
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-
-# tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-# for x in special_tokens:
-#     tokenizer.add_special_tokens(x)
-
-
 def main():
     parser = argparse.ArgumentParser('Evaluating Style Strength')
-    parser.add_argument('--gen_path', default='../output/gpt3-davinci-001_0-1.txt', type=str, help='src')
-    parser.add_argument('--direction', default='0-1', type=str, help='from 0 to 1')
+    parser.add_argument('--gen_path', default='../output/gpt-j-6B_gyafc_1-0.txt', type=str, help='src')
+    parser.add_argument('--direction', default='1-0', type=str, help='from 0 to 1')
 
     parser.add_argument('--max_len', default=30, type=int, help='max tokens in a batch')
     parser.add_argument('--embed_dim', default=300, type=int, help='the embedding size')
@@ -55,8 +47,6 @@ def main():
         for line in f.readlines():
             line=line.strip().lower()
             tokens, _,_=editor.plm_token([line])
-
-            #input_seq = [tokenizer.convert_tokens_to_ids(rbt_token) for rbt_token in tokens][0]
             input_seq=tokenizer.encode(line.strip())[:opt.max_len]
 
             test_src.append(input_seq)
@@ -67,7 +57,7 @@ def main():
     model = TextCNN(opt.embed_dim, len(tokenizer), filter_sizes,
                     num_filters, None, dropout=opt.dropout)
     model.to(device).eval()
-    model.load_state_dict(torch.load('../checkpoints/textcnn_{}_roberta.chkpt'.format(
+    model.load_state_dict(torch.load('checkpoints/textcnn_{}_roberta.chkpt'.format(
         opt.dataset)))
 
     total_num = max_num

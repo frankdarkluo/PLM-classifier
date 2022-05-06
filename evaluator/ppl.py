@@ -1,6 +1,7 @@
+import sys
+sys.path.append("")
 from transformers import GPT2LMHeadModel, GPT2Tokenizer,AutoTokenizer
 import numpy as np
-import argparse
 import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_id = "gpt2"

@@ -7,7 +7,7 @@ if opt.task=='sentiment':
     
     #####
     
-    Sentence: I hated this movie, it sucks.
+    Sentence: I hate this movie, it sucks.
     Sentiment: {negative}
     
     #####
@@ -17,9 +17,19 @@ if opt.task=='sentiment':
     
     #####
     
+    Sentence: i can't believe how tedious this movie is ...
+    Sentiment: {negative}
+    
+    #####
+    
+    Sentence: even in summer , they have decent patronage.
+    Sentiment: {positive}
+    
+    #####
+    
     """
     postfix = "Sentiment: {"
-    stopwords='#$%&()*+,-–./:;<=>@[\\]^_`{|}~•…�'+'0123456789'#+'bcdefghjklmnopqrstvwxyz'
+    stopwords='#$%&()*+,-–./:;<=>@[\\]^_`{|}~—•…�'+'0123456789'#+'bcdefghjklmnopqrstvwxyz'
 elif opt.task=='formality':
     prefix = """
     Sentence: i do not intend to be mean
@@ -41,8 +51,21 @@ elif opt.task=='formality':
     Formality: {formal}
 
     #####
+    
+    Sentence: well, that is simply the manner it is done, i suppose.
+    Formality: {formal}
+    
+    ####
+    
+    Sentence: well that is just the way it is I guess.
+    Formality: {informal}
+    
+    ####
+    
+    Sentence: hello, i am in NYC and i could assist you if you need.
+    Formality: {formal}
 
     """
     postfix="Formality: {"
     #stopwords = '#$%&()*+,-–./:;<=>@[\\]^_`{|}~•…�'+'0123456789'
-    stopwords = '#$%|~…�'
+    stopwords = '#$%|~…�<=>'

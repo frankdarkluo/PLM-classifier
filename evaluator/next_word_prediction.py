@@ -3,7 +3,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, top_k_top_p_filter
 import torch
 from torch import nn
 import numpy as np
-from utils import softmax
+from utils.functions import softmax
 
 topk=1000
 model_name="EleutherAI/gpt-neo-1.3B"

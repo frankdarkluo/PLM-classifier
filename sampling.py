@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import math
 import torch.nn as nn
-from transformers import GPTNeoForCausalLM, GPT2LMHeadModel,GPTJForCausalLM,AutoTokenizer
+from transformers import GPTNeoForCausalLM, GPT2LMHeadModel,GPTJForCausalLM,AutoTokenizer,AutoModelForCausalLM
 from utils.functions import predict_next_word,pipe,pytorch_cos_sim,softmax
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BLEU_WEIGHTS_MEAN = [
@@ -16,27 +16,22 @@ from utils.constant import prefix, postfix
 # model_name='distilbert-base-uncased-finetuned-sst-2-english'
 # sst2_classifier = pipeline("sentiment-analysis",model=model_name)
 
-class SimulatedAnnealing(nn.Module):
+class SteepHC(nn.Module):
     def __init__(self, opt,editor):
-        super(SimulatedAnnealing,self).__init__()
+        super(SteepHC,self).__init__()
         self.opt=opt
         self.editor = editor
         self.t_init = self.opt.t_init
         self.C = self.opt.C
-        self.fluency_weight = self.opt.fluency_weight # 3
-        self.keyword_weight = self.opt.keyword_weight # 1
-        self.sent_weight = self.opt.sent_weight
-        self.style_weight=self.opt.style_weight
-        self.bleu_weight=self.opt.bleu_weight
+        self.fluency_weight = opt.fluency_weight # 3
+        self.keyword_weight = opt.keyword_weight # 1
+        self.sent_weight = opt.sent_weight
+        self.style_weight=opt.style_weight
+        self.bleu_weight=opt.bleu_weight
         self.stride=1024
 
         if self.opt.style_mode=='plm':
-            if 'gpt-neo' in self.opt.class_name:
-                self.plm = GPTNeoForCausalLM.from_pretrained(
-                    self.opt.class_name,revision="float16", low_cpu_mem_usage=True)
-            elif 'gpt-j' in self.opt.class_name:
-                self.plm = GPTJForCausalLM.from_pretrained(
-                    self.opt.class_name,revision="float16", low_cpu_mem_usage=True)
+            self.plm =AutoModelForCausalLM.from_pretrained(self.opt.class_name,low_cpu_mem_usage=True)
             self.plm.eval()
             self.plm.to(device)
         self.tokenizer = AutoTokenizer.from_pretrained(self.opt.class_name)
@@ -177,7 +172,7 @@ class SimulatedAnnealing(nn.Module):
             if c[i] >= r:
                 return i
 
-    def acceptance_prob(self, input_news, input_olds,ref_oris, T,ops,state_vec=None):
+    def acceptance_prob(self, input_news, input_olds,ref_oris,state_vec=None):
         ref_old_score,old_style_score, _ = self.scorer(input_olds,ref_oris,state_vec)
         ref_old_score=ref_old_score.squeeze()
 
@@ -187,28 +182,9 @@ class SimulatedAnnealing(nn.Module):
         ref_new_score_index=torch.argmax(ref_new_scores)
         ref_new_score=torch.max(ref_new_scores)
 
-        # seq_len=[]
-        # for line in ref_olds:
-        #     linewords = [token.replace('Ġ', '') for token in self.tokenizer.tokenize(line.strip())]
-        #     seq_len.append(len(linewords))
-
-        # seq_len=[len(ref_old.strip().split()) for ref_old in ref_olds]
-        #
-        # V_old = np.log(np.maximum(np.power(ref_old_score.cpu().detach().numpy(), 1.0 / seq_len[0]), 1e-200))
-        # if ops==0: #replace
-        #     V_new = np.log(np.maximum(np.power(ref_new_score.cpu().detach().numpy(), 1.0 / seq_len[0]), 1e-200))
-        # elif ops==1: #insert
-        #     V_new = np.log(np.maximum(np.power(ref_new_score.cpu().detach().numpy(), 1.0 / (seq_len[0]+1)), 1e-200))
-        # else: #delete
-        #     V_new = np.log(np.maximum(np.power(ref_new_score.cpu().detach().numpy(), 1.0 / (seq_len[0] - 1)), 1e-200))
-
-        #accept_hat = np.minimum(1, np.exp(np.minimum((V_new - V_old) / T, 100)))
-
         if ref_new_score-ref_old_score>0:
             accept_hat = [1]
         else:
             accept_hat=[0]
 
-        #accept_hat=min(1,min((ref_new_score-ref_old_score)/T,20))
-        #accept_hat = torch.exp((ref_new_score)-ref_new_score/ T)
         return accept_hat,ref_new_score_index,ref_old_score,ref_new_score,old_style_score,new_style_score,new_style_label

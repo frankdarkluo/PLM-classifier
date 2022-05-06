@@ -1,7 +1,8 @@
 checkpoints
 __pycache__
-./idea
+.idea
 data/amazon
 data/GYAFC_full
 check_length.py
 output.txt
+output/

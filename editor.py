@@ -17,9 +17,6 @@ class RobertaEditor(nn.Module):
         self.model_dir='roberta-large'
         self.model = RobertaForMaskedLM.from_pretrained(self.model_dir, return_dict=True).to(device)
         self.tokenizer = RobertaTokenizer.from_pretrained(self.model_dir)
-        # self.model_dir = "albert-xxlarge-v2"
-        # self.tokenizer = AlbertTokenizer.from_pretrained(self.model_dir)
-        # self.model = AlbertModel.from_pretrained("albert-xxlarge-v2")
         print("running the model {}".format(self.model_dir))
 
         self.ops_map = [self.insert, self.replace, self.delete]
@@ -43,7 +40,6 @@ class RobertaEditor(nn.Module):
     def generate(self, input_texts, max_len):
 
         sent_list = []
-        #mask_words = [output['token_str'].strip() for output in self.unmasker(input_texts, top_k=self.topk)]
         for input_text in input_texts:
             #input_seq = torch.tensor(self.tokenizer.encode(input_text, return_tensors='pt')).cuda()
 

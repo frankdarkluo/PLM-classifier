@@ -1,32 +1,52 @@
-from transformers import pipeline,GPT2Tokenizer,GPTJForCausalLM,GPTNeoForCausalLM,AutoTokenizer
+from transformers import pipeline,GPT2Tokenizer,AutoModelForCausalLM,AutoTokenizer
 import argparse
 import torch
 from utils.functions import softmax
-prefix="""
-Sentence: This movie is very nice.
-Sentiment: {positive}
 
-#####
+prefix = """
+    Sentence: i do not intend to be mean
+    Formality: {formal}
 
-Sentence: I hated this movie, it sucks.
-Sentiment: {negative}
+    #####
 
-#####
+    Sentence: ohhh i don't intend to be mean ..
+    Formality: {informal}
 
-Sentence: This movie was actually pretty funny.
-Sentiment: {positive}
+    #####
 
-#####
+    Sentence: what 're u doing here ?
+    Formality: {informal}
 
-"""
+    #####
+
+    Sentence: people are having coffee , lunch, playing in the park , playing and talking .
+    Formality: {formal}
+
+    #####
+
+    Sentence: well, that is simply the manner it is done, i suppose.
+    Formality: {formal}
+
+    ####
+
+    Sentence: well that is just the way it is I guess.
+    Formality: {informal}
+
+    ####
+
+    Sentence: hello, i am in NYC and i could assist you if you need.
+    Formality: {formal}
+
+    """
+postfix = "Formality: {"
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def generate(model,tokenizer,args):
     if args.direction == '0-1': postfix = '0'
     else: postfix = '1'
 
-    output_path='results/'+args.task+'_'+args.direction+'_'+args.model_name.split('/')[-1]+'.txt'
-    data_path='./data/yelp/test.'+postfix
+    output_path='../output/'+args.task+'_'+args.direction+'_'+args.model_name.split('/')[-1]+'.txt'
+    data_path='../data/gyafc_500/test.'+postfix
     with open(data_path,'r',encoding='utf8') as f, open(output_path,'w',encoding='utf8') as of:
         datas=f.readlines()
         for line in datas:
@@ -52,8 +72,8 @@ def generate(model,tokenizer,args):
 
             probs = predictions[0, -1, :]
 
-            pos_logits = probs[tokenizer.encode('positive')]
-            neg_logits = probs[tokenizer.encode('negative')]
+            pos_logits = probs[tokenizer.encode('formal')]
+            neg_logits = probs[tokenizer.encode('informal')]
 
             emo_logits = torch.concat([neg_logits, pos_logits])
             softmax_emo_logits = softmax(emo_logits)
@@ -61,7 +81,12 @@ def generate(model,tokenizer,args):
             pos_prob = softmax_emo_logits[1]
             neg_prob = softmax_emo_logits[0]
 
-            label ='negative' if torch.argmax(softmax_emo_logits) ==0 else 'positive'
+            if torch.argmax(softmax_emo_logits) == 0 and neg_prob >= 0.6:
+                label = 'informal'
+            elif torch.argmax(softmax_emo_logits) == 1 and pos_prob >= 0.6:
+                label = 'formal'
+            else:
+                label = 'neutral'
             # if args.task == 'few-shot':
             #     # output_sent=''.join(output_sent.split('\n')[X+1:X+2])
             #     output_sent = ''.join(output_sent.split('#####')[-1].split('\n\n')[-1])
@@ -73,13 +98,11 @@ def generate(model,tokenizer,args):
 
 def main(args):
     model_name=args.model_name
-    if 'gpt-neo' in model_name:
-        model = GPTNeoForCausalLM.from_pretrained(model_name,revision="float16", low_cpu_mem_usage=True).to(device)
-    elif 'gpt-j' in model_name:
-        model =GPTJForCausalLM.from_pretrained(model_name).to(device)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    #tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+    model = AutoModelForCausalLM.from_pretrained(args.model_name, low_cpu_mem_usage=True)
     model.eval()
+    model.to(device)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+
     generate(model, tokenizer, args)
 
 if __name__ == '__main__':

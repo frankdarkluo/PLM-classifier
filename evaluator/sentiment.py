@@ -18,7 +18,7 @@ pos=0
 neg=0
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--gen_path', default='../output.txt', type=str)
+parser.add_argument('--gen_path', default='output/gpt3-babbage-001_senti_0-1.txt', type=str)
 args=parser.parse_args()
 
 def classifier(text):
@@ -41,7 +41,7 @@ with open(args.gen_path,'r',encoding='utf8') as f:
         if idx< 500:
 
             res=classifier(line.strip())
-            if res[0]['label'].lower()=='negative':
+            if res[0]['label'].lower()=='positive':
                 #print(line.strip())
                 pos+=1
 
