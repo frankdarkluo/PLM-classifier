@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/python
 
 import os
 import sys
@@ -10,7 +9,7 @@ args=model_args.get_args()
 import torch
 from torch import cuda
 from transformers import GPT2Tokenizer,BartTokenizer,RobertaTokenizer
-
+import string
 from utils.dataset import SCIterator
 from utils.textcnn import TextCNN
 from editor import RobertaEditor
@@ -28,8 +27,8 @@ tokenizer = RobertaTokenizer.from_pretrained('roberta-large')
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 def main():
     parser = argparse.ArgumentParser('Evaluating Style Strength')
-    parser.add_argument('--gen_path', default='../output/gpt-j-6B_gyafc_1-0.txt', type=str, help='src')
-    parser.add_argument('--direction', default='1-0', type=str, help='from 0 to 1')
+    parser.add_argument('--gen_path', default='../data/gyafc_500/test.1', type=str, help='src')
+    parser.add_argument('--direction', default='0-1', type=str, help='from 0 to 1')
 
     parser.add_argument('--max_len', default=30, type=int, help='max tokens in a batch')
     parser.add_argument('--embed_dim', default=300, type=int, help='the embedding size')
@@ -45,8 +44,10 @@ def main():
     test_src, test_tgt = [], []
     with open(opt.gen_path,'r') as f:
         for line in f.readlines():
-            line=line.strip().lower()
-            tokens, _,_=editor.plm_token([line])
+            line = line.strip().lower()
+            line=line.split()
+            line = "".join(
+                [" " + i if not i.startswith("'") and i not in string.punctuation else i for i in line]).strip()
             input_seq=tokenizer.encode(line.strip())[:opt.max_len]
 
             test_src.append(input_seq)

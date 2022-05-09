@@ -2,7 +2,9 @@ import torch
 import numpy as np
 import math
 import torch.nn as nn
-from transformers import GPTNeoForCausalLM, GPT2LMHeadModel,GPTJForCausalLM,AutoTokenizer,AutoModelForCausalLM
+import sys
+sys.path.append("")
+from transformers import GPTNeoForCausalLM, GPT2LMHeadModel,AutoTokenizer,AutoModelForCausalLM
 from utils.functions import predict_next_word,pipe,pytorch_cos_sim,softmax
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BLEU_WEIGHTS_MEAN = [
@@ -31,10 +33,15 @@ class SteepHC(nn.Module):
         self.stride=1024
 
         if self.opt.style_mode=='plm':
-            self.plm =AutoModelForCausalLM.from_pretrained(self.opt.class_name,low_cpu_mem_usage=True)
+            if 'gpt-j-hf' in self.opt.class_name:
+                self.plm=GPTNeoForCausalLM.from_pretrained(self.opt.class_name)
+                self.plm.half()
+            else:
+                self.plm =AutoModelForCausalLM.from_pretrained(self.opt.class_name,low_cpu_mem_usage=True)
             self.plm.eval()
             self.plm.to(device)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.opt.class_name)
+
+        self.tokenizer = AutoTokenizer.from_pretrained('gpt2')
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.max_len = self.opt.max_len
         self.model=GPT2LMHeadModel.from_pretrained('gpt2').to(device)
@@ -58,7 +65,10 @@ class SteepHC(nn.Module):
         prob_new_probs=[]
         for idx, sent in enumerate(ref_news):
             text=ref_news[idx]
-            text = "Sentence: " + text + "\n"
+            if self.opt.setting=='zero-shot':
+                text=text
+            else:
+                text = "Sentence: " + text + "\n"
             if self.opt.style_mode == 'plm':
                 # TODO: Define the prompt and the PLM classification score!
                 input_candidate_text = prefix + text + postfix
@@ -116,10 +126,10 @@ class SteepHC(nn.Module):
         sim_mat = torch.bmm(torch.bmm(diag_norm2, emb_mat), diag_norm1)  # K,8,7
         sim_vec, _ = torch.max(sim_mat, dim=2)  # K,8
         try:
-            kw_similarity, _ = torch.max(sim_vec[:, weight2], dim=1)
+            kw_similarity, _ = torch.min(sim_vec[:, weight2], dim=1)
         except:
             weight2[0]=True
-            kw_similarity, _ = torch.max(sim_vec[:, weight2], dim=1)
+            kw_similarity, _ = torch.min(sim_vec[:, weight2], dim=1)
         return kw_similarity
 
     def semantic_scorer(self,ref_news, ref_olds,state_vec=None):

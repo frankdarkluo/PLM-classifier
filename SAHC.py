@@ -29,8 +29,10 @@ def main():
     else: postfix = '1'
 
     if args.task=='sentiment':
-        with open('data/yelp/test.'+postfix, 'r', encoding='utf8') as f:
-            data = f.readlines()
+        filename='data/yelp/test.'+postfix
+        with open(filename, 'r', encoding='utf8') as f:
+            print("we are running on {}".format(filename))
+            data = f.readlines()[350:]
     else:
         with open('data/gyafc_500/test.'+postfix, 'r', encoding='utf8') as f:
             data = f.readlines()
@@ -70,6 +72,7 @@ def main():
             state_vec, _ = editor.state_vec(ref_olds)
 
             break_flag = False
+            max_score=0
             for step in range(args.max_steps):
                 total_score_list = []
                 cand_sent_list = []
@@ -93,41 +96,51 @@ def main():
                             if args.direction == '0-1' and new_style_label == 'positive':
                                 print("Early Stopping!")
                                 logging.info("Early Stopping!")
-                                print("{} steps {}\ttotal score:{} {}\tstyle_score:{} {}"
-                                      .format(step,ref_hat, ref_old_score.item(),
+                                print("{} steps, {}\ttotal score:{} {}\tstyle_score:{} {}"
+                                      .format(step+1,ref_hat, ref_old_score.item(),
                                               ref_new_score.item(), old_style_score.item(), new_style_score.item()))
-                                logging.info("{} steps {}\ttotal score:{} {}\tstyle_score:{} {}"
-                                             .format(step,ref_hat, ref_old_score.item(),
+                                logging.info("{} steps, {}\ttotal score:{} {}\tstyle_score:{} {}"
+                                             .format(step+1,ref_hat, ref_old_score.item(),
                                                      ref_new_score.item(), old_style_score.item(), new_style_score.item()))
                                 break_flag=True
+                                break
 
                             elif args.direction == '1-0' and new_style_label == 'negative':
                                 print("Early Stopping!")
                                 logging.info("Early Stopping!")
-                                print("{} steps {}\ttotal score:{} {}\t style_score:{} {}"
-                                      .format(step,ref_hat, ref_old_score.item(),
+                                print("{} steps, {}\ttotal score:{} {}\t style_score:{} {}"
+                                      .format(step+1,ref_hat, ref_old_score.item(),
                                               ref_new_score.item(), old_style_score.item(), new_style_score.item()))
-                                logging.info("{} steps {}\ttotal score:{} {}\t style_score:{} {}"
-                                             .format(step,ref_hat, ref_old_score.item(),
+                                logging.info("{} steps, {}\ttotal score:{} {}\t style_score:{} {}"
+                                             .format(step+1,ref_hat, ref_old_score.item(),
                                                      ref_new_score.item(), old_style_score.item(), new_style_score.item()))
                                 break_flag = True
+                                break
                     if break_flag:
                         break
 
                 select_index = torch.argmax(torch.tensor(total_score_list).cuda())
                 select_sent = cand_sent_list[select_index]
-                ref_olds = [select_sent]
+                if total_score_list[select_index]>=max_score:
+                    print("hill climbing!")
+                    logging.info("hill climbing!")
+                    ref_olds = [select_sent]
+                    max_score=total_score_list[select_index].item()
+                else:
+                    print("don't climb, stop!")
+                    logging.info("don't climb, stop!")
+                    break_flag=True
+
                 if break_flag:
                     break
 
             if args.early_stop and break_flag:
                 select_sent = cand_sent_list[-1]
             else:
-                select_index=torch.argmax(torch.tensor(total_score_list).cuda())
-                select_sent=cand_sent_list[select_index]
+                select_sent=ref_olds[0]
 
-            logging.info('{} steps, the selected sentence is {}'.format(step,select_sent))
-            print('{} steps, the selected sentence is {}'.format(step+1,select_sent))
+            logging.info('climb {} steps, the selected sentence is: {}'.format(step+1,select_sent))
+            print('climb {} steps, the selected sentence is: {}'.format(step+1,select_sent))
 
             logging.info('\n')
             f.write(select_sent + '\n')

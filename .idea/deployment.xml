@@ -1,18 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="guoqing@amii-manga.cs.ualberta.ca:22" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="guoqing@amii-manga2.cs.ualberta.ca:22" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
       <paths name="guoqing@amii-manga.cs.ualberta.ca:22">
         <serverdata>
           <mappings>
-            <mapping deploy="UPSA_pro" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="PLM-classifier" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
       <paths name="guoqing@amii-manga2.cs.ualberta.ca:22">
         <serverdata>
           <mappings>
-            <mapping deploy="UPSA_pro" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="PLM-classifier" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="guoqing@viking.cs.ualberta.ca:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/guoqing/PLM-classifier" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

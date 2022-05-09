@@ -1,35 +1,32 @@
 import sys
 sys.path.append("")
+import os
+os.environ['CUDA_VISIBLE_DEVICES']='0'
 from transformers import GPT2LMHeadModel, GPT2Tokenizer,AutoTokenizer
 import numpy as np
 import torch
+import string
+from editor import RobertaEditor
+from model_args import get_args
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_id = "gpt2"
 model = GPT2LMHeadModel.from_pretrained(model_id).to(device)
 tokenizer = GPT2Tokenizer.from_pretrained(model_id)
-# test = load_dataset("wikitext", "wikitext-2-raw-v1", split="test")
-# encodings = tokenizer("\n\n".join(test["text"]), return_tensors="pt")
-
-# with open('data/yelp/dualrl.txt','r',encoding='utf8') as f:
-#     data=[line.strip() for line in f.readlines()]
-#     encodings = tokenizer("\n\n".join(data), return_tensors="pt")
-
-import torch
-from editor import RobertaEditor
-from model_args import get_args
 max_length = model.config.n_positions
 stride = 1024
 
 args=get_args()
-rbt_editor=RobertaEditor(args)
+args.gen_path=='../output.txt'
 
 perpl=[]
-with open(args.outfile,'r',encoding='utf8') as f:
+with open(args.gen_path,'r',encoding='utf8') as f:
     datas=f.readlines()
     for data in datas:
+        tokens=data.strip().split()
+        tokens="".join([" " + i if not i.startswith("'") and i not in string.punctuation else i for i in tokens]).strip()
         # _, gpt_tokens=rbt_editor.plm_token([data])
         # input_ids = torch.tensor([tokenizer.convert_tokens_to_ids(gpt_token) for gpt_token in gpt_tokens]).to(device)
-        encodings = tokenizer(data.strip(), return_tensors="pt")
+        encodings = tokenizer(tokens, return_tensors="pt")
         input_ids=encodings.input_ids
         nlls = []
         for i in range(0, input_ids.size(1), stride):

@@ -4,9 +4,7 @@ import torch.nn as nn
 import numpy as np
 import RAKE
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 import nltk
-# nltk.download('averaged_perceptron_tagger')
 from utils.constant import stopwords
 
 class RobertaEditor(nn.Module):

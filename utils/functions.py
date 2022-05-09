@@ -54,8 +54,8 @@ def predict_next_word(model,tokenizer,input_text,direction):
         pos_logits = probs[tokenizer.encode('positive')]
         neg_logits = probs[tokenizer.encode('negative')]
     else:
-        pos_logits = probs[tokenizer.encode('formal')] # 1--> informal
-        neg_logits = probs[tokenizer.encode('informal')]
+        pos_logits = probs[tokenizer.encode(' formal')] # 1--> informal
+        neg_logits = probs[tokenizer.encode(' informal')]
 
     emo_logits = torch.concat([neg_logits, pos_logits])
     softmax_emo_logits = softmax(emo_logits)
@@ -70,13 +70,13 @@ def predict_next_word(model,tokenizer,input_text,direction):
     if args.task == 'sentiment':
         if torch.argmax(softmax_emo_logits) == 0 and neg_prob>=0.65:
             label='negative'
-        elif torch.argmax(softmax_emo_logits) == 1 and pos_prob>=0.65:
+        elif torch.argmax(softmax_emo_logits) == 1 and pos_prob>=0.9:
             label = 'positive'
         else: label = 'neutral'
     elif args.task == 'formality':
-        if torch.argmax(softmax_emo_logits) == 0 and neg_prob>=0.65:
+        if torch.argmax(softmax_emo_logits) == 0 and neg_prob>=0.85:
             label='informal'
-        elif torch.argmax(softmax_emo_logits) == 1 and pos_prob>=0.65:
+        elif torch.argmax(softmax_emo_logits) == 1 and pos_prob>=0.85:
             label = 'formal'
         else: label = 'neutral'
 
