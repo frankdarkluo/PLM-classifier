@@ -15,8 +15,6 @@ BLEU_WEIGHTS_MEAN = [
 ]
 from nltk.translate.bleu_score import corpus_bleu
 from utils.constant import prefix, postfix
-# model_name='distilbert-base-uncased-finetuned-sst-2-english'
-# sst2_classifier = pipeline("sentiment-analysis",model=model_name)
 
 class SteepHC(nn.Module):
     def __init__(self, opt,editor):
@@ -31,6 +29,7 @@ class SteepHC(nn.Module):
         self.style_weight=opt.style_weight
         self.bleu_weight=opt.bleu_weight
         self.stride=1024
+        self.abl=self.opt.ablation
 
         if self.opt.style_mode=='plm':
             if 'gpt-j-hf' in self.opt.class_name:
@@ -46,8 +45,6 @@ class SteepHC(nn.Module):
         self.max_len = self.opt.max_len
         self.model=GPT2LMHeadModel.from_pretrained('gpt2').to(device)
         self.ppl_max_len=self.model.config.n_positions
-        # self.sty_tokenizer=RobertaTokenizer.from_pretrained("siebert/sentiment-roberta-large-english")
-        # self.sty_model=RobertaForSequenceClassification.from_pretrained("siebert/sentiment-roberta-large-english").to(device)
 
     def pipeline_classifier(self,text):
         inputs = self.sty_tokenizer(text, return_tensors="pt").to(device)
@@ -88,7 +85,7 @@ class SteepHC(nn.Module):
 
         return prob_new_prob,style_label
 
-    def fluency_scorer(self,ref_news): #Refer to https://huggingface.co/docs/transformers/perplexity
+    def fluency_scorer(self,ref_news): #ref: https://huggingface.co/docs/transformers/perplexity
         # using the following three lines may largely increase perplexity, which is not good
         # _, gpt_tokens=self.editor.plm_token(ref_news)
         # input_ids = torch.tensor([self.tokenizer.convert_tokens_to_ids(gpt_token) for gpt_token in gpt_tokens]).to(
@@ -160,27 +157,24 @@ class SteepHC(nn.Module):
         fluency_scores = self.fluency_scorer(input_news)
         style_score,style_label=self.style_scorer(input_news)
         bleu_score=self.overlap_score(input_news,ref_oris)
-        total_scores = fluency_scores.pow(self.fluency_weight) * semantic_scores \
-                       * style_score * bleu_score.pow(self.bleu_weight)
+        if self.abl=='fl':
+            total_scores = semantic_scores * style_score * bleu_score.pow(self.bleu_weight)
+        elif self.abl=='ol':
+            total_scores = fluency_scores.pow(self.fluency_weight) * semantic_scores \
+                           * style_score
+        else:# None
+            total_scores = fluency_scores.pow(self.fluency_weight) * semantic_scores \
+                           * style_score * bleu_score.pow(self.bleu_weight)
 
         return total_scores.squeeze(),style_score, style_label
 
     def overlap_score(self,input_news,ref_oris):
         new_tokens=[input_new.split() for input_new in input_news]
         ori_tokens=[[ref_ori.split() for ref_ori in ref_oris]]
-        #just calculate the 1-gram and that's all
+        #calculate the 1-gram overlap and that's all
         bleu1=corpus_bleu(ori_tokens, new_tokens, weights=BLEU_WEIGHTS_MEAN[0])
 
         return torch.tensor(bleu1).to(device)
-
-    def choose_action(self,c):
-        r = np.random.random()
-        c = np.array(c)
-        for i in range(1, len(c)):
-            c[i] = c[i] + c[i - 1]
-        for i in range(len(c)):
-            if c[i] >= r:
-                return i
 
     def acceptance_prob(self, input_news, input_olds,ref_oris,state_vec=None):
         ref_old_score,old_style_score, _ = self.scorer(input_olds,ref_oris,state_vec)

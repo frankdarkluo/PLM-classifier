@@ -1,5 +1,5 @@
 import sys
-sys.path.append("")
+sys.path.append("../")
 import os
 os.environ['CUDA_VISIBLE_DEVICES']='0'
 from transformers import GPT2LMHeadModel, GPT2Tokenizer,AutoTokenizer

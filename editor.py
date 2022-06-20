@@ -48,7 +48,7 @@ class RobertaEditor(nn.Module):
             masked_token_logits = token_logits[0, mask_token_index, :]
             mask_words_list = list(set(self.tokenizer.decode([token.item()]).lower().strip() for token in torch.topk(masked_token_logits, self.topk, dim=1).indices[0]))
 
-            # delete the punctuations
+            # delete the stopwords
             mask_words=[]
             for token in mask_words_list:
                 if len(set(token) & set(stopwords))==0 and token not in 'bcdefghjklmnopqrstvwxyz':
@@ -143,12 +143,6 @@ class RobertaEditor(nn.Module):
 
     def get_contextual_word_embeddings(self, input_texts):
         inputs = {k: v.to(device) for k, v in self.tokenizer(input_texts, padding=True, return_tensors="pt").items()}
-        # inputs={}
-        # rbt_tokens, _=self.plm_token(input_texts)
-        # input_ids=torch.tensor([self.tokenizer.convert_tokens_to_ids(rbt_token) for rbt_token in rbt_tokens]).to(device)
-        # attention_mask=torch.tensor([[1]*len(inp) for inp in rbt_tokens]).to(device)
-        # inputs['input_ids']=input_ids
-        # inputs['attention_mask']=attention_mask
 
         outputs = self.model(**inputs, output_hidden_states=True)
         sentence_embeddings = self.mean_pooling(outputs, inputs['attention_mask'])
@@ -160,17 +154,10 @@ class RobertaEditor(nn.Module):
         key_ind = []
         pos = pos[:self.max_len]
         for i in range(len(pos)):
-            # if pos[i] in ['NN', 'NNS','NNP','NNPS']:
-            #     key_ind.append(i)
-            # if pos[i] in ['NN', 'NNS', 'NNP', 'NNPS']:
-            #     key_ind.append(i)
             if keyword[i] == 1:
                 key_ind.append(i)
-            # elif pos[i] in ['VBZ'] and keyword[i] == 1:
-            #     key_ind.append(i)
-            # elif pos[i] in ['VBZ', 'VBP', 'VBN', 'VBG', 'VBD', 'VB'] and keyword[i] == 1:
-            #     key_ind.append(i)
-            elif pos[i] in ['JJS', 'JJR', 'JJ', 'RBR', 'RBS', 'RB', 'VBZ', 'VBP', 'VBN', 'VBG', 'VBD', 'VB'] and keyword[i] == 0:
+            elif pos[i] in ['JJS', 'JJR', 'JJ', 'RBR', 'RBS', 'RB', 'VBZ', 'VBP', 'VBN', 'VBG', 'VBD', 'VB'] \
+                    and keyword[i] == 0:
                 key_ind.append(i)
 
         #key_ind = key_ind[:max(int(option.max_key_rate * len(pos)), option.max_key)]
@@ -180,7 +167,7 @@ class RobertaEditor(nn.Module):
                 sta_vec.append(1)
             else:
                 sta_vec.append(0)
-        # liuxg
+
         if np.sum(sta_vec) == 0:
             sta_vec[0] = 1
         return sta_vec

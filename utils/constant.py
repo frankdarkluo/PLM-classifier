@@ -7,7 +7,7 @@ if opt.task=='sentiment':
 
     else: # few-shot
         prefix = """
-                Sentence: This movie is very nice.
+                Sentence: This movie is very exciting.
                 Sentiment: {positive}
 
                 ####
@@ -24,24 +24,24 @@ if opt.task=='sentiment':
 
                 """
         adding1 = \
-            '''Sentence: i can't believe how tedious this movie is ...
+            '''Sentence: i can't believe how tedious this movie is...
             Sentiment: {negative}
 
             ####
 
-            Sentence: This movie was actually pretty funny.
+            Sentence: This restaurant has good service and delicious food!
             Sentiment: {positive}
 
             ####
             '''
         adding2 = \
             '''
-            Sentence: i can't believe how tedious this movie is ...
+            Sentence: i would never recommend anyone to live in here 
             Sentiment: {negative}
 
             ####
 
-            Sentence: even in summer , they have decent patronage.
+            Sentence: even in summer, they have decent patronage.
             Sentiment: {positive}
 
             ####

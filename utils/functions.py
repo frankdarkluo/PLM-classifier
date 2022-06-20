@@ -66,17 +66,27 @@ def predict_next_word(model,tokenizer,input_text,direction):
         output_prob = pos_prob / neg_prob  # make the prob more robust
     else: #1-0
         output_prob=  neg_prob / pos_prob
+    # if direction=='0-1':
+    #     output_prob = pos_prob
+    # else: #1-0
+    #     output_prob = neg_prob
+    if args.setting=='zeros-shot':
+        senti_neg=0.65
+        senti_pos=0.9
+    else:
+        senti_neg=0.85
+        senti_pos=0.85
 
     if args.task == 'sentiment':
-        if torch.argmax(softmax_emo_logits) == 0 and neg_prob>=0.65:
+        if torch.argmax(softmax_emo_logits) == 0 and neg_prob>=senti_neg:
             label='negative'
-        elif torch.argmax(softmax_emo_logits) == 1 and pos_prob>=0.9:
+        elif torch.argmax(softmax_emo_logits) == 1 and pos_prob>=senti_pos:
             label = 'positive'
         else: label = 'neutral'
     elif args.task == 'formality':
-        if torch.argmax(softmax_emo_logits) == 0 and neg_prob>=0.85:
+        if torch.argmax(softmax_emo_logits) == 0 and neg_prob>=0.75:
             label='informal'
-        elif torch.argmax(softmax_emo_logits) == 1 and pos_prob>=0.85:
+        elif torch.argmax(softmax_emo_logits) == 1 and pos_prob>=0.75:
             label = 'formal'
         else: label = 'neutral'
 

@@ -32,7 +32,7 @@ def main():
         filename='data/yelp/test.'+postfix
         with open(filename, 'r', encoding='utf8') as f:
             print("we are running on {}".format(filename))
-            data = f.readlines()[350:]
+            data = f.readlines()
     else:
         with open('data/gyafc_500/test.'+postfix, 'r', encoding='utf8') as f:
             data = f.readlines()
@@ -121,7 +121,7 @@ def main():
 
                 select_index = torch.argmax(torch.tensor(total_score_list).cuda())
                 select_sent = cand_sent_list[select_index]
-                if total_score_list[select_index]>=max_score:
+                if total_score_list[select_index]>max_score:
                     print("hill climbing!")
                     logging.info("hill climbing!")
                     ref_olds = [select_sent]
@@ -129,6 +129,7 @@ def main():
                 else:
                     print("don't climb, stop!")
                     logging.info("don't climb, stop!")
+                    cand_sent_list.append(select_sent)
                     break_flag=True
 
                 if break_flag:

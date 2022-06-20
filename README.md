@@ -39,6 +39,7 @@ perl multi-bleu.perl ../data/GYAFC_500/pos2neg_ref/ref0.0 ../data/GYAFC_500/pos2
 perl multi-bleu.perl ../data/GYAFC_500/neg2pos_ref/ref0.1 ../data/GYAFC_500/neg2pos_ref/ref1.1 ../data/GYAFC_500/neg2pos_ref/ref2.1 ../data/GYAFC_500/neg2pos_ref/ref3.1 < ../output/gpt3-babbage-001_0-1.txt
 
 perl multi-bleu.perl ../data/yelp/references/reference0 ../data/yelp/references/reference1 ../data/yelp/references/reference2 ../data/yelp/references/reference3 < ../output/sentiment_both.txt
+perl multi-bleu.perl ../data/gyafc_500/references/ref0 ../data/gyafc_500/references/ref1 ../data/gyafc_500/references/ref2 ../data/gyafc_500/references/ref3 < ../output/gyafc_both.txt
 
 perl multi-bleu.perl ../data/yelp/pos2neg_ref/ref0.1 ../data/yelp/pos2neg_ref/ref1.1 ../data/yelp/pos2neg_ref/ref2.1 ../data/yelp/pos2neg_ref/ref3.1 < ../output/gpt3-babbage-001_senti_1-0.txt
 perl multi-bleu.perl ../data/yelp/neg2pos_ref/ref0.0 ../data/yelp/neg2pos_ref/ref1.0 ../data/yelp/neg2pos_ref/ref2.0 ../data/yelp/neg2pos_ref/ref3.0 < ../output/gpt3-babbage-001_senti_0-1.txt

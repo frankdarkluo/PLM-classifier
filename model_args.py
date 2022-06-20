@@ -9,8 +9,6 @@ def get_args():
 
     ## Model building
 
-    # parser.add_argument('--model_name_or_path', type=str, default="roberta-large",help='model_name_or_path.')
-    # parser.add_argument('--tokenizer_name_or_path', type=str, default="roberta-large",help='tokenizer_name_or_path.')
     parser.add_argument('--max_len', type=int, default=24,help='Input length of model')
     parser.add_argument('--seed', type=int, default=42, help='Seed for random number generator')
     parser.add_argument('--max_key', default=10, type=float)
@@ -34,9 +32,10 @@ def get_args():
     parser.add_argument("--semantic_mode", default='kw-sent',type=str,help='kw | sent | kw-sent')
     parser.add_argument("--action",default='all', type=str, help='replace | delete | insert | all')
     parser.add_argument('--keyword_pos', default=False, type=bool)
-    parser.add_argument("--early_stop",default=True, type=bool)
+    parser.add_argument("--early_stop",default=False, type=bool)
     parser.add_argument("--prob_actions",default=False, type=bool)
     parser.add_argument("--same_pos_edit", default=False, type=bool)
+    parser.add_argument("--ablation",default='None',type=str)
 
     args, unparsed = parser.parse_known_args()
     return args

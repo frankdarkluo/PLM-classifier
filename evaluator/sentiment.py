@@ -2,7 +2,7 @@ from transformers import pipeline,RobertaTokenizer,RobertaForSequenceClassificat
 import torch
 import string
 import sys
-sys.path.append("")
+sys.path.append("../")
 import argparse
 from utils.functions import softmax
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -39,10 +39,11 @@ with open(args.gen_path,'r',encoding='utf8') as f:
 
     for idx,data in enumerate(datas):
         if idx< 500:
-            tokens = data.strip().split()
+            tokens = data.strip()
+            tokens=tokens.split()
             tokens = "".join(
                 [" " + i if not i.startswith("'") and i not in string.punctuation else i for i in tokens]).strip()
-            res=pipeline_classifier(tokens.strip())
+            res=pipeline_classifier(tokens)
             if res[0]['label'].lower()=='positive':
                 #print(line.strip())
                 pos+=1
